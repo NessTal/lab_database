@@ -91,13 +91,15 @@ class Window3(App):
 
         # create and add rows for the experiments table
         experiment_row = self.add_row('Experiment', 'drop_down')
-        participant_table.add_child(str(id(experiment_row)), experiment_row)
+        experiment_table.add_child(str(id(experiment_row)), experiment_row)
         date_row = self.add_row('Date', 'date')
-        participant_table.add_child(str(id(date_row)), date_row)
+        experiment_table.add_child(str(id(date_row)), date_row)
         subject_number_row = self.add_row('Subject Number', 'input')
-        participant_table.add_child(str(id(subject_number_row)), subject_number_row)
+        experiment_table.add_child(str(id(subject_number_row)), subject_number_row)
         exp_comments_row = self.add_row('Comments', 'input')
-        participant_table.add_child(str(id(exp_comments_row)), exp_comments_row)
+        experiment_table.add_child(str(id(exp_comments_row)), exp_comments_row)
+        list_row = self.add_row('List', 'input')
+        experiment_table.add_child(str(id(list_row)), list_row)
 
         # Create labels
         participant_label = gui.Label('Participant')
