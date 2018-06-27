@@ -10,6 +10,8 @@ year_to: int
 hand: str
 rs_from: int
 rs_to: int
+hebrew_age: int
+other_lenguages: str
 
 דוגמה:
 {'exp_include': ['A', 'B'], 'exp_exclude': ['C'], 'gender': 'Male', 'year_from': '1', 'year_to': '2', 'hand': 'Right', 'rs_from': '1', 'rs_to': '2'}
