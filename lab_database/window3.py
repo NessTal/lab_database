@@ -10,17 +10,21 @@ class Window3(App):
         super(Window3, self).__init__(*args)
 
     def main(self):
-        search_by_container = gui.HBox(width='70%', height='20%')
-        # Search by drop down
+        search_by_container = gui.HBox(width='60%', height='20%')
+        # Search by drop down, input and button
         self.search_by_dd = gui.DropDown(width='30%')
         self.search_by_dd.add_child(0, gui.DropDownItem('Search By'))
         for idx, exp in enumerate(search_by):
             self.search_by_dd.add_child(idx + 1, gui.DropDownItem(exp))
-        # search input
         self.search_input = gui.Input()
+        self.search_button = gui.Button('Search')
+
         # Append to container
         search_by_container.append(self.search_by_dd)
         search_by_container.append(self.search_input)
+        search_by_container.append(self.search_button)
+
+        # ToDo: update container once done
         return search_by_container
 
 
