@@ -4,6 +4,7 @@ from remi import start, App
 exps = ['A','B','C']
 table = [(1,2,3,4), (5,6,7,8), (9,10,11,12)]
 
+
 class LabApp(App):
     def __init__(self, *args):
         super(LabApp, self).__init__(*args)
