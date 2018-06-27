@@ -21,9 +21,9 @@ def mail_reminders(experiment_list):
         if experiment.date == (datetime.date.today() + datetime.timedelta(days=1)):  # experiment.date?
             to = experiment.subject.mail
             subject_reminder = "תזכורת לניסוי"
-            body_reminder = f"""This is a reminder
-            you have an experiment tomorrow at {subject.time}
-            thanks"""  # fix time variable
+            body_reminder = """This is a reminder
+            you have an experiment tomorrow
+            thanks"""
             yag.send(to=to, subject=subject_reminder, contents=body_reminder)
 
 
