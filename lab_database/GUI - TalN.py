@@ -1,14 +1,20 @@
 import remi.gui as gui
 from remi import start, App
 
-# delete when database exists:
-exp_names = ['A','B','C']
 
 class LabApp(App):
     def __init__(self, *args):
         super(LabApp, self).__init__(*args)
+        self.exp_names = ['A','B','C'] ######### to be somehow received from the database
+        # lists containing the filter's widgets, for the function filter() to get their values:
+        self.filter_bio_widgets = []
+        self.filter_exp_yes_widgets = []
+        self.filter_exp_no_widgets = []
 
     def main(self):
+        """
+        calls for the three big containers and creates tabs
+        """
         container = gui.TabBox()
         container.add_tab(self.filters_widget(), 'Fillter', 'Fillter')
         container.add_tab(self.edit_widget(), 'Add or Edit Subject', 'Add or Edit Subject')
@@ -16,6 +22,10 @@ class LabApp(App):
         return container
 
     def filters_widget(self):
+        """
+        creates the filters container by calling for its three parts (two that create filters and one that creates the table).
+        a "Filter" button is also created here, which has a listener function.
+        """
         filters_widget = gui.VBox(width = 1000, height = 1000) # the entire tab
         filters_box = gui.HBox(width = 1000, height = 300)  # the upper part
         filters_box.append(self.bio_filters())
@@ -38,7 +48,11 @@ class LabApp(App):
         return bio_filters
 
     def exp_filters(self):
+        """
+        creates an "include" and "exclude" checkbox for each experiment.
+        """
         exp_filters = gui.Table()
+        # creating the titles:
         row = gui.TableRow()
         item = gui.TableTitle()
         item.add_child(str(id(item)),'Include')
@@ -50,7 +64,8 @@ class LabApp(App):
         item.add_child(str(id(item)),'Experiment')
         row.add_child(str(id(item)),item)
         exp_filters.add_child(str(id(row)), row)
-        for exp in exp_names:
+        # creating a row for each experiment:
+        for exp in self.exp_names:
             row = gui.TableRow()
             item = gui.TableItem()
             cb_yes = gui.CheckBox()
@@ -65,17 +80,29 @@ class LabApp(App):
             item.add_child(str(id(item)),exp_name)
             row.add_child(str(id(item)),item)
             exp_filters.add_child(str(id(row)), row)
+            self.filter_exp_yes_widgets.append(cb_yes)
+            self.filter_exp_no_widgets.append(cb_no)
         return exp_filters
 
     def filter(self, *args):
+        """
+        passes the requested filters to a function that queries the database, receives the relevant data
+        and displays it in the table part of the Filter tab.
+        """
+        # check which filters were selected:
+        for idx, exp in enumerate(self.exp_names):
+            if self.filter_exp_yes_widgets[idx].get_value == 1:
+                print(f"yes: {exp}")
+            if self.filter_exp_no_widgets[idx].get_value == 1:
+                print(f"no: {exp}")
         selected_filters = []
         return selected_filters
 
-    def edit_widget(self):
+    def edit_widget(self): ########## add from talt
         edit_widget = gui.VBox(width = 500, height = 500)
         return edit_widget
 
-    def create_widget(self):
+    def create_widget(self): ########## needs to be created
         create_widget = gui.VBox(width = 500, height = 500)
         return create_widget
 
