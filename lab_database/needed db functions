@@ -4,6 +4,7 @@
 המילון שייכנס לפונקציה הזו יהיה:
 exp_include: list
 exp_exclude: list
+gender: str
 year_from: int
 year_to: int
 hand: str

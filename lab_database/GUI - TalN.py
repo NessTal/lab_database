@@ -4,12 +4,12 @@ from remi import start, App
 
 class LabApp(App):
     def __init__(self, *args):
-        super(LabApp, self).__init__(*args)
         self.exp_names = ['A','B','C'] ######### to be somehow received from the database
         # lists containing the filter's widgets, for the function filter() to get their values:
         self.filter_bio_widgets = []
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
+        super(LabApp, self).__init__(*args)
 
     def main(self):
         """
@@ -39,12 +39,46 @@ class LabApp(App):
         return filters_widget
 
     def bio_filters(self):
+        """
+        creates filters for the subject's biographic information.
+        """
         bio_filters = gui.VBox(width = 500, height = 300)
+
         gender = gui.DropDown()
         gender.add_child(0,gui.DropDownItem('Gender'))
         gender.add_child(1,gui.DropDownItem('Male'))
         gender.add_child(2,gui.DropDownItem('Female'))
         bio_filters.append(gender)
+        self.filter_bio_widgets.append(gender)
+
+        years = gui.HBox(width = 500, height = 100)
+        years_label = gui.Label('Year of birth')
+        years_from = gui.TextInput(hint='from')
+        years_to = gui.TextInput(hint='to')
+        years.append(years_label)
+        years.append(years_from)
+        years.append(years_to)
+        bio_filters.append(years)
+        self.filter_bio_widgets.append(years_from)
+        self.filter_bio_widgets.append(years_to)
+
+        hand = gui.DropDown()
+        hand.add_child(0,gui.DropDownItem('Dominant hand'))
+        hand.add_child(1,gui.DropDownItem('Right'))
+        hand.add_child(2,gui.DropDownItem('Left'))
+        bio_filters.append(hand)
+        self.filter_bio_widgets.append(hand)
+
+        rs = gui.HBox(width = 500, height = 100)
+        rs_label = gui.Label('Reading Span')
+        rs_from = gui.TextInput(hint='from')
+        rs_to = gui.TextInput(hint='to')
+        rs.append(rs_label)
+        rs.append(rs_from)
+        rs.append(rs_to)
+        bio_filters.append(rs)
+        self.filter_bio_widgets.append(rs_from)
+        self.filter_bio_widgets.append(rs_to)
         return bio_filters
 
     def exp_filters(self):
@@ -88,14 +122,36 @@ class LabApp(App):
         """
         passes the requested filters to a function that queries the database, receives the relevant data
         and displays it in the table part of the Filter tab.
+        sends a dict with field as a key and the desired filter an value (for exp filter this would be a list).
         """
+        # reset selected filters dict:
+        selected_filters = {}
         # check which filters were selected:
+        # exp filters:
+        selected_exp_yes = []
+        selected_exp_no = []
         for idx, exp in enumerate(self.exp_names):
-            if self.filter_exp_yes_widgets[idx].get_value == 1:
-                print(f"yes: {exp}")
-            if self.filter_exp_no_widgets[idx].get_value == 1:
-                print(f"no: {exp}")
-        selected_filters = []
+            if self.filter_exp_yes_widgets[idx].get_value() == 1:
+                selected_exp_yes.append(self.exp_names[idx])
+            elif self.filter_exp_no_widgets[idx].get_value() == 1:
+                selected_exp_no.append(self.exp_names[idx])
+        if selected_exp_yes != []:
+            selected_filters['exp_include'] = selected_exp_yes
+        if selected_exp_no != []:
+            selected_filters['exp_exclude'] = selected_exp_no
+
+        #bio filters:
+        if (self.filter_bio_widgets[0].get_value() != None) and (self.filter_bio_widgets[0].get_value() != 'Gender'):
+            selected_filters['gender'] = self.filter_bio_widgets[0].get_value()
+        if self.filter_bio_widgets[1].get_value() != '':
+            selected_filters['year_from'] = self.filter_bio_widgets[1].get_value()
+            selected_filters['year_to'] = self.filter_bio_widgets[2].get_value()
+        if (self.filter_bio_widgets[3].get_value() != None) and (self.filter_bio_widgets[3].get_value() != 'Dominant hand' ):
+            selected_filters['hand'] = self.filter_bio_widgets[3].get_value()
+        if self.filter_bio_widgets[4].get_value() != '':
+            selected_filters['rs_from'] = self.filter_bio_widgets[4].get_value()
+            selected_filters['rs_to'] = self.filter_bio_widgets[5].get_value()
+        print(selected_filters)
         return selected_filters
 
     def edit_widget(self): ########## add from talt
