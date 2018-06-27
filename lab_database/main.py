@@ -2,10 +2,11 @@ import yagmail
 import json
 import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
+#import GUI
+#import database
 
-# database
+# start(GUIapp)
 
-# GUI
 
 with open("config.json", "r") as file:
     data = json.load(file)
