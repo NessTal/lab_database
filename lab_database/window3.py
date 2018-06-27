@@ -8,6 +8,7 @@ search_by = ['ID','e-mail', 'Name']
 class Window3(App):
     def __init__(self, *args):
         super(Window3, self).__init__(*args)
+        self.info_dict = dict()
 
     def main(self):
         window3_container = gui.VBox()
@@ -55,7 +56,9 @@ class Window3(App):
         participant_table.add_child(str(id(last_name_row)), last_name_row)
         id_row = self.add_row('ID', 'input')
         participant_table.add_child(str(id(id_row)), id_row)
-        year_of_birth_row = self.add_row('Year of Birth', 'input')
+        email_row = self.add_row('e-mail', 'input')
+        participant_table.add_child(str(id(email_row)), email_row)
+        year_of_birth_row = self.add_row('Year of Birth', 'slider')
         participant_table.add_child(str(id(year_of_birth_row)), year_of_birth_row)
 
         info_container.append(participant_table)
@@ -63,7 +66,7 @@ class Window3(App):
 
     def add_row(self, label, box_type):
         """create a row with a table and box type"""
-        types_dict = {'input': gui.TextInput}
+        types_dict = {'input': gui.TextInput, 'date': gui.Date, 'slider': gui.SpinBox}
         row = gui.TableRow()
         item = gui.TableItem()
         label = label
@@ -71,6 +74,7 @@ class Window3(App):
         row.add_child(str(id(item)), item)
         item = gui.TableItem()
         box = types_dict[box_type]()
+        self.info_dict[label] = box
         item.add_child(str(id(item)), box)
         row.add_child(str(id(item)), item)
         return row
