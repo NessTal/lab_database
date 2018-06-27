@@ -20,6 +20,9 @@ class LabApp(App):
         filters_box = gui.HBox(width = 1000, height = 300)  # the upper part
         filters_box.append(self.bio_filters())
         filters_box.append(self.exp_filters())
+        filter_button = gui.Button('Filter')
+        filter_button.set_on_click_listener(self.filter)
+        filters_box.append(filter_button)
         table_box = gui.TableWidget(0,0)    # the bottom part
         filters_widget.append(filters_box)
         filters_widget.append(table_box)
@@ -35,19 +38,38 @@ class LabApp(App):
         return bio_filters
 
     def exp_filters(self):
-        exp_filters = gui.HBox(width = 500, height = 300)
-        exp_f_yes = gui.VBox(width=250, height=300)
-        exp_f_no = gui.VBox(width=250, height=300)
-        exp_f_yes_title = gui.Label('Include')
-        exp_f_no_title = gui.Label('Exclude')
-        exp_f_yes.append(exp_f_yes_title)
-        exp_f_no.append(exp_f_no_title)
+        exp_filters = gui.Table()
+        row = gui.TableRow()
+        item = gui.TableTitle()
+        item.add_child(str(id(item)),'Include')
+        row.add_child(str(id(item)),item)
+        item = gui.TableTitle()
+        item.add_child(str(id(item)),'Exclude')
+        row.add_child(str(id(item)),item)
+        item = gui.TableTitle()
+        item.add_child(str(id(item)),'Experiment')
+        row.add_child(str(id(item)),item)
+        exp_filters.add_child(str(id(row)), row)
         for exp in exp_names:
-            exp_f_yes.append(gui.CheckBox())
-            exp_f_no.append(gui.CheckBoxLabel(label=exp))
-        exp_filters.append(exp_f_yes)
-        exp_filters.append(exp_f_no)
+            row = gui.TableRow()
+            item = gui.TableItem()
+            cb_yes = gui.CheckBox()
+            item.add_child(str(id(item)),cb_yes)
+            row.add_child(str(id(item)),item)
+            item = gui.TableItem()
+            cb_no = gui.CheckBox()
+            item.add_child(str(id(item)),cb_no)
+            row.add_child(str(id(item)),item)
+            item = gui.TableItem()
+            exp_name = gui.Label(exp)
+            item.add_child(str(id(item)),exp_name)
+            row.add_child(str(id(item)),item)
+            exp_filters.add_child(str(id(row)), row)
         return exp_filters
+
+    def filter(self, *args):
+        selected_filters = []
+        return selected_filters
 
     def edit_widget(self):
         edit_widget = gui.VBox(width = 500, height = 500)
