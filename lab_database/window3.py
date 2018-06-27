@@ -47,10 +47,23 @@ class Window3(App):
         row.add_child(str(id(table_title)), table_title)
         participant_table.add_child(str(id(row)), row)
 
-        
+        first_name_row = gui.TableRow()
+        item = gui.TableItem()
+        label = gui.Label('First Name')
+        item.add_child(str(id(item)), label)
+        first_name_row.add_child(str(id(item)), item)
+        item = gui.TableItem()
+        first_name = gui.TextInput()
+        first_name.set_text('')  #ToDo: add from func
+        item.add_child(str(id(item)), first_name)
+        first_name_row.add_child(str(id(item)), item)
+        participant_table.add_child(str(id(first_name_row)), first_name_row)
 
         info_container.append(participant_table)
         return info_container
+
+    def add_row(self, label, box_type):
+        row = gui.TableRow()
 
 
 if __name__ == '__main__':
