@@ -13,6 +13,7 @@ class Window3(App):
         self.handedness = ['Right', 'Left']
         self.gender = ['Female', 'Male']
         self.search_widgets = dict()
+        self.no_field_dialog = gui.GenericDialog(message='Please select a field')
 
         # Append to container
         window3_container.append(self.search_by_container())
@@ -146,8 +147,7 @@ class Window3(App):
     def search_button_click(self, widget):
         """search a user based on name/email/ID"""
         if self.search_widgets['search by field'].get_value() not in self.search_by:
-            print('##')
-
+            self.no_field_dialog.show(self)
 
 if __name__ == '__main__':
     start(Window3)
