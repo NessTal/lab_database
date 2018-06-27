@@ -2,15 +2,16 @@ import remi.gui as gui
 from remi import start, App
 
 
-search_by = ['ID','e-mail', 'Name']
-
-
 class Window3(App):
     def __init__(self, *args):
         super(Window3, self).__init__(*args)
 
     def main(self):
+        self.info_dict = dict()
         window3_container = gui.VBox()
+        self.search_by = ['ID','e-mail', 'Name']
+        self.handedness = ['Right', 'Left']
+        self.gender = ['Male', 'Female']
 
         # Append to container
         window3_container.append(self.search_by_container())
@@ -23,7 +24,7 @@ class Window3(App):
         search_by_container = gui.HBox(width='60%', height='20%')
         self.search_by_dd = gui.DropDown(width='30%')
         self.search_by_dd.add_child(0, gui.DropDownItem('Search By'))
-        for idx, exp in enumerate(search_by):
+        for idx, exp in enumerate(self.search_by):
             self.search_by_dd.add_child(idx + 1, gui.DropDownItem(exp))
         self.search_input = gui.Input()
         self.search_button = gui.Button('Search')
@@ -55,15 +56,26 @@ class Window3(App):
         participant_table.add_child(str(id(last_name_row)), last_name_row)
         id_row = self.add_row('ID', 'input')
         participant_table.add_child(str(id(id_row)), id_row)
-        year_of_birth_row = self.add_row('Year of Birth', 'input')
+        email_row = self.add_row('e-mail', 'input')
+        participant_table.add_child(str(id(email_row)), email_row)
+        year_of_birth_row = self.add_row('Year of Birth', 'spinbox')
         participant_table.add_child(str(id(year_of_birth_row)), year_of_birth_row)
+        handedness_row = self.add_row('Handedness', 'drop_down')
+        participant_table.add_child(str(id(handedness_row)), handedness_row)
+        # add handedness options
+        self.info_dict['Handedness'].add_child(0, gui.DropDownItem('Handedness'))
+        for idx, exp in enumerate(self.handedness):
+            self.info_dict['Handedness'].add_child(idx + 1, gui.DropDownItem(exp))
 
         info_container.append(participant_table)
         return info_container
 
     def add_row(self, label, box_type):
         """create a row with a table and box type"""
-        types_dict = {'input': gui.TextInput}
+        types_dict = {'input': gui.TextInput,
+                      'date': gui.Date,
+                      'spinbox': gui.SpinBox,
+                      'drop_down': gui.DropDown}
         row = gui.TableRow()
         item = gui.TableItem()
         label = label
@@ -71,6 +83,7 @@ class Window3(App):
         row.add_child(str(id(item)), item)
         item = gui.TableItem()
         box = types_dict[box_type]()
+        self.info_dict[label] = box
         item.add_child(str(id(item)), box)
         row.add_child(str(id(item)), item)
         return row
