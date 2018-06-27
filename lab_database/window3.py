@@ -8,9 +8,9 @@ search_by = ['ID','e-mail', 'Name']
 class Window3(App):
     def __init__(self, *args):
         super(Window3, self).__init__(*args)
-        self.info_dict = dict()
 
     def main(self):
+        self.info_dict = dict()
         window3_container = gui.VBox()
 
         # Append to container
@@ -58,15 +58,20 @@ class Window3(App):
         participant_table.add_child(str(id(id_row)), id_row)
         email_row = self.add_row('e-mail', 'input')
         participant_table.add_child(str(id(email_row)), email_row)
-        year_of_birth_row = self.add_row('Year of Birth', 'slider')
+        year_of_birth_row = self.add_row('Year of Birth', 'spinbox')
         participant_table.add_child(str(id(year_of_birth_row)), year_of_birth_row)
+        handedness_row = self.add_row('Handedness', 'drop_down')
+        participant_table.add_child(str(id(handedness_row)), handedness_row)
 
         info_container.append(participant_table)
         return info_container
 
     def add_row(self, label, box_type):
         """create a row with a table and box type"""
-        types_dict = {'input': gui.TextInput, 'date': gui.Date, 'slider': gui.SpinBox}
+        types_dict = {'input': gui.TextInput,
+                      'date': gui.Date,
+                      'spinbox': gui.SpinBox,
+                      'drop_down': gui.DropDown}
         row = gui.TableRow()
         item = gui.TableItem()
         label = label
