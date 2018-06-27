@@ -2,9 +2,6 @@ import remi.gui as gui
 from remi import start, App
 
 
-search_by = ['ID','e-mail', 'Name']
-
-
 class Window3(App):
     def __init__(self, *args):
         super(Window3, self).__init__(*args)
@@ -12,6 +9,9 @@ class Window3(App):
     def main(self):
         self.info_dict = dict()
         window3_container = gui.VBox()
+        self.search_by = ['ID','e-mail', 'Name']
+        self.handedness = ['Right', 'Left']
+        self.gender = ['Male', 'Female']
 
         # Append to container
         window3_container.append(self.search_by_container())
@@ -24,7 +24,7 @@ class Window3(App):
         search_by_container = gui.HBox(width='60%', height='20%')
         self.search_by_dd = gui.DropDown(width='30%')
         self.search_by_dd.add_child(0, gui.DropDownItem('Search By'))
-        for idx, exp in enumerate(search_by):
+        for idx, exp in enumerate(self.search_by):
             self.search_by_dd.add_child(idx + 1, gui.DropDownItem(exp))
         self.search_input = gui.Input()
         self.search_button = gui.Button('Search')
@@ -62,6 +62,10 @@ class Window3(App):
         participant_table.add_child(str(id(year_of_birth_row)), year_of_birth_row)
         handedness_row = self.add_row('Handedness', 'drop_down')
         participant_table.add_child(str(id(handedness_row)), handedness_row)
+        # add handedness options
+        self.info_dict['Handedness'].add_child(0, gui.DropDownItem('Handedness'))
+        for idx, exp in enumerate(self.handedness):
+            self.info_dict['Handedness'].add_child(idx + 1, gui.DropDownItem(exp))
 
         info_container.append(participant_table)
         return info_container
