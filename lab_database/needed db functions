@@ -21,6 +21,8 @@ other_lenguages: str
 3. פונקציה שבודקת האם משתמש קיים או לא לפי שם/מייל/ת"ז
 מקבלת key ו-value
 מחזירה True/False
+> find_subject(identifier) -> I made it flexible. It doesn't need a key, just a name/mail/ID (if it's ID use in integer, if not use a string)
+> if it is empry it will return an empty data frame, you could just check it buy using 'df.empty' and get a True/False if you need it.
 
 4. פונקציה שמקבלת שדות (של משתמש חדש/קיים) ומעדכנת אותם
 מקבלת dictionary
