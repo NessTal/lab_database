@@ -90,10 +90,14 @@ class Window3(App):
         experiment_table.add_child(str(id(row)), row)
 
         # create and add rows for the experiments table
-        subject_row = self.add_row('ID', 'input')
-        participant_table.add_child(str(id(subject_row)), subject_row)
         experiment_row = self.add_row('Experiment', 'drop_down')
         participant_table.add_child(str(id(experiment_row)), experiment_row)
+        date_row = self.add_row('Date', 'date')
+        participant_table.add_child(str(id(date_row)), date_row)
+        subject_number_row = self.add_row('Subject Number', 'input')
+        participant_table.add_child(str(id(subject_number_row)), subject_number_row)
+        exp_comments_row = self.add_row('Comments', 'input')
+        participant_table.add_child(str(id(exp_comments_row)), exp_comments_row)
 
         # Create labels
         participant_label = gui.Label('Participant')
@@ -119,7 +123,7 @@ class Window3(App):
         row.add_child(str(id(item)), item)
         item = gui.TableItem()
         box = types_dict[box_type]()
-        self.info_dict[label] = box
+        self.info_dict[label] = box  # add the widgets to a dict
         if box_type == 'spinbox':
             box.set_value(0)
         item.add_child(str(id(item)), box)
