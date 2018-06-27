@@ -21,3 +21,4 @@ rs_to: int
 
 4. פונקציה שמקבלת שדות (של משתמש חדש/קיים) ומעדכנת אותם
 מקבלת dictionary
+> function: insert_or_update_sub(dict_new_sub)
