@@ -13,8 +13,6 @@ class Window3(App):
         self.handedness = ['Right', 'Left']
         self.gender = ['Female', 'Male']
         self.search_widgets = dict()
-        self.no_field_dialog = gui.GenericDialog(message='Please select a field')
-        self.no_input_dialog = gui.GenericDialog(message='Please enter your input')
 
         # Append to container
         window3_container.append(self.search_by_container())
@@ -147,15 +145,28 @@ class Window3(App):
 
     def search_button_click(self, widget):
         """search a user based on name/email/ID"""
-        # Verify that the search fields are not empty
-        # ToDo: test input
+        # Verify that the search fields are not empty, alert the user with dialog box
+        # todo : test input
         if self.search_widgets['search by field'].get_value() not in self.search_by:
-            self.no_field_dialog.show(self)
+            self.show_dialog('Please select a field')
         elif self.search_widgets['search by value'].get_value() == '':
-            self.no_input_dialog.show(self)
-        # verify that ID is a string
+            self.show_dialog('Please enter your input')
+        # verify that ID is an int todo: test ID
         elif self.search_widgets['search by field'].get_value() == 'ID':
-            pass
+            self.validate_int(self.search_widgets['search by value'].get_value(),'ID')
+        # else: todo: add this function from the database code
+        #     subj_data = find_subject(self.search_widgets['search by field'].get_value())
+
+    def validate_int(self, num, field: str):
+        """validates that the input can be modified to int"""
+        try:
+            x = int(num)
+        except ValueError:
+            self.show_dialog(f'The field {field} can only contain numbers')
+
+    def show_dialog(self, message: str):
+        self.error_dialog = gui.GenericDialog(message=message)
+        self.error_dialog.show(self)
 
 
 if __name__ == '__main__':
