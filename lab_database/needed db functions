@@ -4,11 +4,15 @@
 המילון שייכנס לפונקציה הזו יהיה:
 exp_include: list
 exp_exclude: list
+gender: str
 year_from: int
 year_to: int
 hand: str
 rs_from: int
 rs_to: int
+
+דוגמה:
+{'exp_include': ['A', 'B'], 'exp_exclude': ['C'], 'gender': 'Male', 'year_from': '1', 'year_to': '2', 'hand': 'Right', 'rs_from': '1', 'rs_to': '2'}
 
 
 3. פונקציה שבודקת האם משתמש קיים או לא לפי שם/מייל/ת"ז
@@ -17,3 +21,4 @@ rs_to: int
 
 4. פונקציה שמקבלת שדות (של משתמש חדש/קיים) ומעדכנת אותם
 מקבלת dictionary
+> function: insert_or_update_sub(dict_new_sub)
