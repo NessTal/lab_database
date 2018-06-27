@@ -14,6 +14,7 @@ class Window3(App):
 
         # Append to container
         window3_container.append(self.search_by_container())
+        window3_container.append(self.participant_info())
 
         return window3_container
 
@@ -36,7 +37,20 @@ class Window3(App):
     def participant_info(self):
         """Show or edit participants' info"""
         info_container = gui.VBox()
+        participant_table = gui.Table()
+        row = gui.TableRow()
         table_title = gui.TableTitle()
+        table_title.add_child(str(id(table_title)), 'Participant')
+        row.add_child(str(id(table_title)), table_title)
+        table_title = gui.TableTitle()
+        table_title.add_child(str(id(table_title)), 'Info')
+        row.add_child(str(id(table_title)), table_title)
+        participant_table.add_child(str(id(row)), row)
+
+        
+
+        info_container.append(participant_table)
+        return info_container
 
 
 if __name__ == '__main__':
