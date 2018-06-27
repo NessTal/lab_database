@@ -9,11 +9,12 @@ class Window3(App):
     def main(self):
         self.info_dict = dict()
         window3_container = gui.VBox()
-        self.search_by = ['ID', 'e-mail', 'Name']
+        self.search_by = ['ID', 'e-mail', 'Full Name']
         self.handedness = ['Right', 'Left']
         self.gender = ['Female', 'Male']
         self.search_widgets = dict()
         self.no_field_dialog = gui.GenericDialog(message='Please select a field')
+        self.no_input_dialog = gui.GenericDialog(message='Please enter your input')
 
         # Append to container
         window3_container.append(self.search_by_container())
@@ -146,8 +147,16 @@ class Window3(App):
 
     def search_button_click(self, widget):
         """search a user based on name/email/ID"""
+        # Verify that the search fields are not empty
+        # ToDo: test input
         if self.search_widgets['search by field'].get_value() not in self.search_by:
             self.no_field_dialog.show(self)
+        elif self.search_widgets['search by value'].get_value() == '':
+            self.no_input_dialog.show(self)
+        # verify that ID is a string
+        elif self.search_widgets['search by field'].get_value() == 'ID':
+            pass
+
 
 if __name__ == '__main__':
     start(Window3)
