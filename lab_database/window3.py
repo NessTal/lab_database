@@ -2,7 +2,7 @@ import remi.gui as gui
 from remi import start, App
 import pandas as pd
 import peewee
-from lab_database import *
+from back_end import *
 
 
 class Window3(App):
@@ -162,23 +162,31 @@ class Window3(App):
         elif field == 'ID' and not self.validate_int(search_value, 'ID'):
             pass
         else:
-            # print(search_value)
+            if field == 'ID':
+                search_value = int(search_value)
             subj_data = find_subject(search_value)
-            # print(subj_data)
+            subj_data = subj_data[0]
+            # if the user does not exist, add the field we searched to the table so a new user could be created
             if subj_data.empty:
-                self.show_dialog('No subject found, add a new subject below')
+                print(subj_data)  # todo: delete this later
+                self.show_dialog('No subject found, you can add a new subject below')
                 self.info_dict[field].set_value(search_value)
-                # todo: call the 'enter user function' [to be added]
+            # else, add the subject's fields to the table
+            else:
+                pass  # todo: call add_subject
 
-    def add_subject(self, data, label, value):
+    def add_subject(self, data):
         """add a subject's details"""
-        subject_fields = dict()
-        # if the user does not exist, add the field we searched to the table so a new user could be created
-        if data.empty:
-            self.show_dialog('No subject found, add a new subject below')
-            self.info_dict[label].set_value(value)
-        else:
-            pass
+        # print(data['first'][0])
+        self.info_dict['ID'].set_value(data['sub_ID'][0])
+        self.info_dict['First Name'].set_value(data['first'][0])
+        self.info_dict['Last Name'].set_value(data['last'][0])
+        self.info_dict['e-mail'].set_value(data['mail'][0])
+        self.info_dict['Gender'].set_value(data['gender'][0])
+        self.info_dict['Year of Birth'].set_value(data['year_of_birth'][0])
+        self.info_dict['Handedness'].set_value(data['dominant_hand'][0])
+        self.info_dict['Reading Span'].set_value(data['reading_span'][0])
+        self.info_dict['Comments'].set_value(data['notes'][0])
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
