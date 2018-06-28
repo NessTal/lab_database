@@ -104,3 +104,32 @@ class Person(Model):
 
     class Meta:
         database = db # This model uses the "people.db" database
+--=-=-=-=-=----
+def find_subject(identifier):
+    potential_fields = ['sub_ID', 'mail']
+    for field in potential_fields:
+        print(field)
+        query = Subject.select().where(Subject.sub_ID == dict_new_sub[field])
+        if query.exists():
+            sub = Subject.select().where(Subject.sub_ID == dict_new_sub['sub_ID']).get()
+
+    get_table('Subject')
+-=-=-=-=-=-=-=-=-=
+
+def insert_experiment(dict_new_exp):
+    # check if the subject is in Subject data base and add if needed:
+    _, is_in = find_subject(dict_new_exp['subject'])
+    if not is_in:
+        insert_or_update_sub({'first':'', 'last':'', 'sub_ID':dict_new_exp['subject'],
+                              'year_of_birth':0,'dominant_hand':'','mail':'','notes':''})
+    # match the internal identifier of the subject between the tables.
+    sub_dict = {}
+    query = Subject.select().where(Subject.sub_ID == dict_new_exp['subject']).dicts()
+    print(query.first)
+    for row in query:
+        for key,val in row.items():
+            print(key,val)
+            sub_dict.setdefault(key, []).append(val)
+    # assign the new raw to the table
+    dict_new_exp['subject'] = sub_dict['id'][0]
+    Experiment.create(**dict_new_exp).save()
