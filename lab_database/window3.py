@@ -224,7 +224,7 @@ class Window3(App):
                 hebrew_age = 0
             other_languages = self.info_dict['Other Languages'].get_value()
 
-            subject_info={'sub_id': sub_id,
+            subject_info={'sub_ID': sub_id,
                           'first': first,
                           'last': last,
                           'mail': mail,
@@ -234,7 +234,8 @@ class Window3(App):
                           'reading_span': reading_span,
                           'notes': notes,
                           'hebrew_age': hebrew_age,
-                          'other_languages': other_languages}
+                          'other_languages': other_languages,
+                          'name': 'no_exp'}
             insert_experiment(subject_info)
 
     def validate_int(self, num, field: str, debug=False)->bool:
