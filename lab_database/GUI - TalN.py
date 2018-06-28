@@ -4,11 +4,12 @@ from back_end import *
 
 class LabApp(App):
     def __init__(self, *args):
-        self.exp_names = ['A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C'] ######### to be somehow received from the database
+        self.exp_names = ['A','B','Exp1','Exp2','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C'] ######### to be somehow received from the database
         # lists containing the filter's widgets, for the function filter() to get their values:
         self.filter_bio_widgets = []
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
+        self.filter_table = []
         super(LabApp, self).__init__(*args)
 
     def main(self):
@@ -30,6 +31,7 @@ class LabApp(App):
         filters_box.append(self.exp_filters())
         filters_box.append(self.bio_filters())
         table_box = gui.TableWidget(0,0)    # the bottom part
+        self.filter_table = table_box
         filters_widget.append(filters_box)
         filters_widget.append(table_box)
         return filters_widget
@@ -192,10 +194,10 @@ class LabApp(App):
         results = filt(filt_dict = selected_filters)
         results_list_of_tuples = []
         results_list_of_tuples.append(tuple(results.columns.values))
-        for row in results:
+        for idx, row in results.iterrows():
             results_list_of_tuples.append(tuple(row))
         print(results_list_of_tuples)
-        # table_box.append_from_list(results_list_of_tuples,fill_title=True)
+        self.filter_table.append_from_list(results_list_of_tuples,fill_title=True)
         return results
 
     def send_email(self):
