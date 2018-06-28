@@ -62,9 +62,10 @@ def insert_or_update_sub(dict_new_sub):
 
 ##########
 
-dict_new_sub = {sub_ID: '001', year_of_birth: 1999, dominant_hand: 'Right', mail: 'abc@mail.com', send-mails: 1, reading_span: 3,
-                gender: 'Male', hebrew_age: 0, other_languages: 'none'
-                }
+# fields = ['sub_ID', 'year_of_birth', 'dominant_hand', 'mail', 'send-mails', 'reading_span','gender', 'hebrew_age', 'other_languages']
+dict_new_sub = {'sub_ID': 1, 'first': 'vv', 'last': 'b', 'notes': 'dsd', 'year_of_birth': 1999,
+                'dominant_hand': 'R', 'mail': 'abcmail.com', 'send_mails': True,
+                'reading_span': 3, 'gender': 'Male', 'hebrew_age': 0, 'other_languages': 'none'}
 insert_or_update_sub(dict_new_sub)
 
 ##########
