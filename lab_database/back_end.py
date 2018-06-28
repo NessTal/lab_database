@@ -125,7 +125,7 @@ def filt(filt_dict, exp_list = 0):
             for val in filt_dict['exp_exclude']:
                 sub = sub.loc[sub['name'] != val]
         # Include by experiments (only if exclusion by experiment was entered)
-        elif filt_dict['exp_include']:
+        if 'exp_include' in filt_dict:
             for val in filt_dict['exp_include']:
                 sub = sub.loc[sub['name'] == val]
         return sub
