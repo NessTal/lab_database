@@ -50,9 +50,9 @@ class LabApp(App):
         creates filters for the subject's biographic information.
         the "Filter" and "Send an E-Mail" buttons are also created here (but their listener functions are for all filtering, including exp).
         """
-        bio_filters = gui.VBox(width = 300, height = 450)
+        bio_filters = gui.VBox(width = 350, height = 450)
 
-        languages = gui.HBox(width = 300, height = 100)
+        languages = gui.HBox(width = 350, height = 100)
         hebrew_age = gui.TextInput(hint='Hebrew exposure age')
         languages.append(hebrew_age)
         other_languages = gui.TextInput(hint='other languages')
@@ -68,7 +68,7 @@ class LabApp(App):
         bio_filters.append(gender)
         self.filter_bio_widgets.append(gender)
 
-        years = gui.HBox(width = 300, height = 100)
+        years = gui.HBox(width = 350, height = 100)
         years_label = gui.Label('Year of birth',width = 300)
         years_from = gui.TextInput(hint='from')
         years_to = gui.TextInput(hint='to')
@@ -86,7 +86,7 @@ class LabApp(App):
         bio_filters.append(hand)
         self.filter_bio_widgets.append(hand)
 
-        rs = gui.HBox(width = 300, height = 100)
+        rs = gui.HBox(width = 350, height = 100)
         rs_label = gui.Label('Reading Span',width = 300)
         rs_from = gui.TextInput(hint='from')
         rs_to = gui.TextInput(hint='to')
@@ -101,20 +101,19 @@ class LabApp(App):
         bio_filters.append(send_mails)
         self.filter_bio_widgets.append(send_mails)
 
-#        gap = gui.HBox(height=150)
-#        bio_filters.append(send_mails)
 
-        # Filter and email buttons with listener:
-        buttons_box = gui.HBox(width = 300, height=100)
-        filter_button = gui.Button('Filter', width = 80)
-        filter_button.set_on_click_listener(self.filter)
+        # Filter, experiment list, and email buttons with listener:
+        buttons_box = gui.HBox(width = 350, height=100)
+        filter_button = gui.Button('Filter', width = 70)
+        filter_button.set_on_click_listener(self.filter_listener)
         buttons_box.append(filter_button)
-        email_button = gui.Button('Send an E-Mail', width = 150)
+        exp_list_button = gui.Button('Experiment list', width = 120)
+        exp_list_button.set_on_click_listener(self.exp_list_listener)
+        buttons_box.append(exp_list_button)
+        email_button = gui.Button('Send an E-Mail', width = 140)
         email_button.set_on_click_listener(self.send_email)
         buttons_box.append(email_button)
         bio_filters.append(buttons_box)
-
-
 
         return bio_filters
 
@@ -159,7 +158,13 @@ class LabApp(App):
                 exp_filters.append(exp_table)
         return exp_filters
 
-    def filter(self, *args):
+    def filter_listener(self, *args):
+        self.filter(exp_list = 0)
+
+    def exp_list_listener(self, *args):
+        self.filter(exp_list = 1)
+
+    def filter(self, exp_list=0, *args):
         """
         passes the requested filters to a function that queries the database, receives the relevant data
         and displays it in the table part of the Filter tab.
@@ -200,7 +205,7 @@ class LabApp(App):
             selected_filters['rs_to'] = int(self.filter_bio_widgets[7].get_value())
         if self.filter_bio_widgets[8].get_value() == '1':
             selected_filters['send_mails'] = int(self.filter_bio_widgets[8].get_value())
-        results = filt(filt_dict = selected_filters)
+        results = filt(filt_dict = selected_filters, exp_list = exp_list)
         results_list_of_tuples = []
         results_list_of_tuples.append(tuple(results.columns.values))
         for idx, row in results.iterrows():

@@ -107,27 +107,27 @@ def get_table_experiment():
 
 def filt(filt_dict, exp_list = 0):
     df_exp = get_table_experiment()
-    #If one experiment is given, just return all the data of this experiment.
-    if len(filt_dict['exp_include']) == 1:
+    # If experiment list is requested, just return the full data of this experiment.
+    # for now it gives the same output as it would if exp_list was 0, but it is for future use..
+    if exp_list == 1:
         return df_exp.loc[df_exp['name'] == filt_dict['exp_include'][0]]
     else:
         #now = datetime.datetime.now()
         #this_year = now.year
+
         # Exclude based on parameters other than exclusion/inclusion of experiments.
+        sub = df_exp
+        for key, val in filt_dict.items():
+            sub = FiltSwitch().filter_by_key(key, val, sub)
 
-        # for key, val in filt_dict.items():
-        #     df_exp = FiltSwitch().filter_by_key(key, val, df_exp)
-
-        sub = df_exp.loc[(df_exp['gender'] == filt_dict['gender']) & (df_exp['year_of_birth'] >= filt_dict['year_from']) & (df_exp['year_of_birth'] <= filt_dict['year_to']) &
-                         (df_exp['dominant_hand'] == filt_dict['hand']) & (df_exp['reading_span'] >= filt_dict['rs_from']) & (df_exp['reading_span'] <= filt_dict['rs_to'])]
-        # Exclude by other experiments
-        if filt_dict['exp_exclude']:
+        # Exclude by experiments
+        if 'exp_exclude' in filt_dict:
             for val in filt_dict['exp_exclude']:
-                sub = sub.loc[df_exp['name'] != val]
+                sub = sub.loc[sub['name'] != val]
         # Include by experiments (only if exclusion by experiment was entered)
         elif filt_dict['exp_include']:
             for val in filt_dict['exp_include']:
-                sub = sub.loc[df_exp['name'] == val]
+                sub = sub.loc[sub['name'] == val]
         return sub
 
 def experiment_tomorrow_mails():

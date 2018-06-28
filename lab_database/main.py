@@ -37,4 +37,4 @@ def exp_mail(sub_df):
 
 scheduler = BlockingScheduler()
 job = scheduler.add_job(mail_reminders(), 'cron', hour=reminder_time)
-#scheduler.start()
+scheduler.start()
