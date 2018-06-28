@@ -436,7 +436,7 @@ class LabApp(App):
                           'hebrew_age': hebrew_age,
                           'other_languages': other_languages,
                           'name': 'no_exp'}
-            insert_experiment(subject_info)
+            insert_or_update_sub(subject_info)
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
