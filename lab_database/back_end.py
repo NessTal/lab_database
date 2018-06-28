@@ -1,10 +1,5 @@
-import sqlite3
-import time
 import datetime
-#import faker
-import peewee
-from datetime import date
-
+import pandas as pd
 from peewee import *
 
 db = SqliteDatabase(r'./subjects.db')
@@ -17,9 +12,11 @@ class Subject(Model):
     dominant_hand = FixedCharField(max_length=1)
     mail = CharField()
     notes = CharField()
-    # send_mails = BooleanField()
-    # reading_span = IntegerField()
-    # gender = CharField()
+    send_mails = BooleanField()
+    reading_span = IntegerField()
+    gender = CharField()
+    hebrew_age = IntegerField()
+    other_languages = CharField()
 
     class Meta:
         database = db # This model uses the "subjects.db" database.
@@ -27,12 +24,12 @@ class Subject(Model):
 
 class Experiment(Model):
     subject = ForeignKeyField(Subject, backref='experiments')
-    # sub_code = CharField()
+    sub_code = CharField()
     name = CharField()
     date = DateTimeField()
     participated = BooleanField()
-    # notes = CharField()
-    # exp_list = CharField()
+    notes = CharField()
+    exp_list = CharField()
 
     class Meta:
         database = db # this model uses the "subjects.db" database
@@ -54,119 +51,87 @@ def insert_or_update_sub(dict_new_sub):
         print('new_one')
         Subject.create(**dict_new_sub).save()
 
-for sub in Subject.select():
-    print(sub.sub_ID)
+def unique_exoeriments():
+    return list(set([exp.name for exp in Experiment.select()]))
 
-query = Subject.select().order_by(Category.name)
+def get_table_subjects():
+    query = Subject.select().dicts()
+    data_dict = {}
+    for row in query:
+        for key,val in row.items():
+            data_dict.setdefault(key, []).append(val)
+    return pd.DataFrame.from_dict(data_dict).drop(columns=['id'])
 
-print(sub.first, sub.last, sub.sub_ID)
-    print(a)
-    sub = Subject.select().where(Subject.sub_ID == id).get()
-    sub = Subject.select().where(Subject.sub_ID == 010101010).get()
+def find_subject(identifier):
+    df = get_table_subjects
+    if ' ' in str(identifier):
+        first_name, last_name = identifier.split(" ", 1)
+        sub = df.loc[(df['first'] == first_name) & (df['last'] == last_name)]
+    else:
+        if type(identifier) == str:
+            sub = df.loc[df['mail'] == identifier]
+        else:
+            sub = df.loc[df['sub_ID'] == identifier]
+            if not sub.empty:
+                return sub, not sub.empty
+    return sub, not sub.empty
 
-    Subject(first = CharField(), last = CharField(), sub_ID = IntegerField(), year_of_birth = IntegerField(),
-            dominant_hand = FixedCharField(max_length=1) ,mail = CharField() ,notes = CharField()
+def insert_experiment(dict_new_exp):
+    # check if the subject is in Subject data base and add if needed:
+    _, is_in = find_subject(dict_new_exp['subject'])
+    if not is_in:
+        insert_or_update_sub({'first':'', 'last':'', 'sub_ID':dict_new_exp['subject'],
+                              'year_of_birth':0,'dominant_hand':'','mail':'','notes':''})
+    # match the internal identifier of the subject between the tables.
+    sub_dict = {}
+    query = Subject.select().where(Subject.sub_ID == dict_new_exp['subject']).dicts()
+    for row in query:
+        for key,val in row.items():
+            print(key,val)
+            sub_dict.setdefault(key, []).append(val)
+    # assign the new raw to the table
+    dict_new_exp['subject'] = sub_dict['id'][0]
+    Experiment.create(**dict_new_exp).save()
 
-
-
-        c.execute("INSERT INTO participants VALUES (:first,:last,:withfloat,:withint)",
-                  {'first': sub.first, 'last': sub.last, 'withfloat': sub.withfloat, 'withint': sub.withint})
-
-
-def update_fields(id, update_target):
-    sub = Subject.select().where(Subject.sub_ID == id).get()
-    field_to_update=list(update_target.keys())[0]
-    update_to = update_target[field_to_update]
-    setattr(sub, field_to_update, update_to)
-    sub.save()
-
-
-
-    field =
-
-    getattr(sub,field_to_update)
-
-
-#editing
-sub6.name = 'MyNaMeWasUpDaTeD' #can change the inherited, everything...
-sub6.save()  # Update grandma's name in the database.
-# Returns: 1
-#  when you call save the number of rows modified is returned.
-
-Subject.create(first='Specialush', last='WoW', sub_ID = 123123123, year_of_birth=2000,
-               dominant_hand = 'R', mail = 'aaa@bbb', notes= 'A GeNeRaL NoTe').save()
-
-# create experiments
-HRS = Experiment.create(subject=sub2, name='HRS', date='04-04-2018', participated=1)
-RCC = Experiment.create(subject=sub3, name='RCC', date='05-04-2018', participated=0)
-BOOST = Experiment.create(subject=sub4, name='BOOST', date='08-04-2018', participated=1)
-BSV = Experiment.create(subject=sub5, name='BSV',date='01-04-2018', participated=0)
-
-#remove a subject:
-BOOST.delete_instance() # he had a great life
-# Returns: 1. The return value of delete_instance() is the number of rows removed from the database.
-
-#------- Retrieving data------
-subjush = Subject.select().where(Subject.first == 'BOBO').get()
-# A shorter alternative:
-subjush = Subject.get(Subject.first == 'BOBO')
-subjush = Subject.get(Subject.sub_ID == 123123123)
-
-for sub in Subject.select():
-    print(sub.sub_ID)
-a = [sub.first for sub in Subject.select()]
-a = [sub for sub in Subject.select()]
-#### TASK --> make it a table in pandas
-
-# listing the experiments with their subjects
-query = Experiment.select().where(Experiment.name == 'BSV')
-for exp in query:
-    print(exp.name, exp.subject.first)
-
-#We can avoid the extra queries by selecting both Pet and Person, and adding a join.
-#The right way...
-query = Experiment.select(Experiment, Subject).join(Subject).where(Experiment.name == 'BSV')
-
-for exp in query:
-    print(exp.name, exp.subject.first)
-
-# Let’s get all the experiment conducted by a specific subject:
-for exp in Experiment.select().join(Subject).where(Subject.first == 'ZOLO'):
-    print(exp.name)
-# An alternative... with a specific instance... not sure it is better for me...
-for exp in Experiment.select().where(Experiment.subject == sub2):
-    print(exp.name)
-# can add an orderby()... something
+def get_table_experiment():
+    query = Experiment.select(Experiment, Subject).join(Subject).dicts()
+    data_dict = {}
+    for row in query:
+        for key,val in row.items():
+            data_dict.setdefault(key, []).append(val)
+    return pd.DataFrame.from_dict(data_dict).drop(columns=['id','subject'])
 
 
+def filt(filt_dict):
+    df_exp = get_table_experiment()
+    #If one experiment is given, just return all the data of this experiment.
+    if len(filt_dict['exp_include']) == 1:
+        return df_exp.loc[df_exp['name'] == filt_dict['exp_include'][0]]
+    else:
+        #define some relevant stuff for the age-based exclusion:
+        now = datetime.datetime.now()
+        this_year = now.year
+        max_year = this_year - int(filt_dict['year_from'])
+        min_year = this_year - int(filt_dict['year_to'])
+        # Exclude based on parameters other than exclusion/inclusion of experiments.
+        sub = df_exp.loc[(df_exp['gender'] == filt_dict['gender']) & (df_exp['year_of_birth'] >= min_year) & (df_exp['year_of_birth'] <= max_year) &
+                         (df_exp['dominant_hand'] == filt_dict['hand']) & (df_exp['reading_span'] >= filt_dict['rs_from']) & (df_exp['reading_span'] <= filt_dict['rs_to'])]
+        # Exclude by other experiments
+        if filt_dict['exp_exclude']:
+            for val in filt_dict['exp_exclude']:
+                sub = sub.loc[df_exp['name'] != val]
+        # Include by experiments (only if exclusion by experiment was entered)
+        elif filt_dict['exp_include']:
+            for val in filt_dict['exp_include']:
+                sub = sub.loc[df_exp['name'] == val]
+        return sub
 
-#Usually this type of duplication is undesirable. To accommodate the more common (and intuitive) workflow of listing a person and attaching a list of that person’s pets, we can use a special method called prefetch():
-
-query = Subject.select().order_by(Subject.first).prefetch(Experiment)
-for subject in query:
-    print(subject.first)
-    for exp in subject.experiments:
-        print('  *', exp.name)
-
-
-
-# One last query. This will use a SQL function to find all people whose names start with either an upper or lower-case G:
-expression = fn.Lower(fn.Substr(Person.name, 1, 1)) == 'g'
-for person in Person.select().where(expression):
-    print(person.name)
+def experiment_tomorrow_mails():
+    df_exp = get_table_experiment()
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    return df_exp.loc[df_exp['date'] == tomorrow]
 
 
 db.close()
 
 
-
-
-
-
-# older
-def update_field(id, update_target):
-    sub = Subject.select().where(Subject.sub_ID == id).get()
-    field_to_update=list(update_target.keys())[0]
-    update_to = update_target[field_to_update]
-    setattr(sub, field_to_update, update_to)
-    sub.save()
