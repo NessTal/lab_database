@@ -118,17 +118,15 @@ class Window3(App):
         participant_label = gui.Label('Participant')
         experiment_label = gui.Label('Experiment')
 
-        # Create buttons
-        update_participant = gui.Button('Update Participant')
-        update_experiment = gui.Button('Update Experiment')
+        # Create update button
+        update_info = gui.Button('Update Info')
 
         # Add widgets to the container
         info_container.append(participant_label)
         info_container.append(participant_table)
-        info_container.append(update_participant)
         info_container.append(experiment_label)
         info_container.append(experiment_table)
-        info_container.append(update_experiment)
+        info_container.append(update_info)
         return info_container
 
     def add_row(self, label, box_type):
@@ -194,8 +192,42 @@ class Window3(App):
         self.info_dict['Hebrew Age'].set_value(int(data['hebrew_age'][0]))
         self.info_dict['Other Languages'].set_value(data['other_languages'][0])
 
-    def update_subject(self):
-        pass
+    def update_subject(self)->dict:
+        if self.validate_int(self.info_dict['ID'].get_value(), 'ID'):
+            sub_id = int(self.info_dict['ID'].get_value())
+        else:
+            sub_id = 0
+        first = self.info_dict['First Name'].get_value()
+        last = self.info_dict['Last Name'].get_value()
+        mail = self.info_dict['e-mail'].get_value()
+        gender = self.info_dict['Gender'].get_value()
+        if self.validate_int(self.info_dict['Year of Birth'].get_value(), 'Year of Birth'):
+            year_of_birth = int(self.info_dict['Year of Birth'].get_value())
+        else:
+            year_of_birth = 0
+        dominant_hand = self.info_dict['Handedness'].get_value()
+        if self.validate_int(self.info_dict['Reading Span'].get_value(), 'Reading Span'):
+            reading_span = int(self.info_dict['Reading Span'].get_value())
+        else:
+            reading_span = 0
+        notes = self.info_dict['Comments'].get_value()
+        if self.validate_int(self.info_dict['Hebrew Age'].get_value(), 'Hebrew Age'):
+            hebrew_age = int(self.info_dict['Hebrew Age'].get_value())
+        else:
+            hebrew_age = 0
+        other_languages = self.info_dict['Other Languages'].get_value()
+        subject_info={'sub_id': sub_id,
+                      'first': first,
+                      'last': last,
+                      'mail': mail,
+                      'gender': gender,
+                      'year_of_birth': year_of_birth,
+                      'dominant_hand': dominant_hand,
+                      'reading_span': reading_span,
+                      'notes': notes,
+                      'hebrew_age': hebrew_age,
+                      'other_languages': other_languages}
+        return subject_info
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""

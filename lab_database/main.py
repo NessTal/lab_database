@@ -3,7 +3,7 @@ import json
 import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 #import GUI
-#import database
+from back_end import *
 
 # start(GUIapp)
 
@@ -17,24 +17,24 @@ yag = yagmail.SMTP(username)
 
 
 # email reminders
-def mail_reminders(experiment_list):
-    for experiment in experiment_list:
-        if experiment.date == (datetime.date.today() + datetime.timedelta(days=1)):  # experiment.date?
-            to = experiment.subject.mail
-            subject_reminder = "תזכורת לניסוי"
-            body_reminder = """This is a reminder
-            you have an experiment tomorrow
-            thanks"""
-            yag.send(to=to, subject=subject_reminder, contents=body_reminder)
+def mail_reminders():
+    to = experiment_tomorrow_mails()
+    subject_reminder = "תזכורת לניסוי"
+    body_reminder = """This is a reminder
+    you have an experiment tomorrow
+    thanks"""
+    yag.send(to=to, subject=subject_reminder, contents=body_reminder)
 
 
 # new experiment announcement
-def exp_mail(email_list):
+def exp_mail(sub_df):
+    email_list = sub_df['mail'].tolist()
     subject_new = "ניסוי חדש!"
-    body_new = ""
+    body_new = """אתם מוזמנים להשתתף בניסוי חדש
+    תודה"""
     yag.send(to=email_list, subject=subject_new, contents=body_new)
 
 
 scheduler = BlockingScheduler()
 job = scheduler.add_job(mail_reminders(), 'cron', hour=reminder_time)
-scheduler.start()
+#scheduler.start()
