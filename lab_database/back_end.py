@@ -101,24 +101,10 @@ def get_table_experiment():
     for row in query:
         for key,val in row.items():
             data_dict.setdefault(key, []).append(val)
-    return pd.DataFrame.from_dict(data_dict).drop(columns=['id','subject'])
+    return pd.DataFrame.from_dict(data_dict).drop(columns=['id'])
 
 
-"""
-# fields = ['sub_ID', 'year_of_birth', 'dominant_hand', 'mail', 'send-mails', 'reading_span','gender', 'hebrew_age', 'other_languages']
-dict_new_sub = {'sub_ID': 1, 'first':'a','last': 'b', 'notes': 'dsd', 'year_of_birth': 1999,
-                'dominant_hand': 'Right', 'mail': 'abc@mail.com', 'send_mails': True,
-                'reading_span': 3, 'gender': 'Male', 'hebrew_age': 0, 'other_languages': 'none'}
-insert_or_update_sub(dict_new_sub)
-
-dict_new_exp = {'sub_ID': 4, 'first':'a','last': 'b', 'notes': 'dsd', 'year_of_birth': 2005,
-                'dominant_hand': 'Left', 'mail': 'abc@mail.com', 'send_mails': True,
-                'reading_span': 3, 'gender': 'Male', 'hebrew_age': 0, 'other_languages': 'none','name':'Exp2'}
-insert_experiment(dict_new_exp)
-print(unique_experiments())
-"""
-
-def filt(filt_dict):
+def filt(filt_dict, exp_list = 0):
     df_exp = get_table_experiment()
     #If one experiment is given, just return all the data of this experiment.
     if len(filt_dict['exp_include']) == 1:
