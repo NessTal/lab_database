@@ -2,7 +2,7 @@ import remi.gui as gui
 from remi import start, App
 import pandas as pd
 import peewee
-from back_end import *
+from lab_database import *
 
 
 class Window3(App):
