@@ -6,7 +6,7 @@ class LabApp(App):
     def __init__(self, *args):
         self.exp_names = ['A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C'] ######### to be somehow received from the database
         # lists containing the filter's widgets, for the function filter() to get their values:
-        self.filter_bio_widgets = [] # 0-1: languages, 2: gender, 3-4: years, 5: hand, 6-7: rs
+        self.filter_bio_widgets = []
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
         super(LabApp, self).__init__(*args)
@@ -39,7 +39,7 @@ class LabApp(App):
         creates filters for the subject's biographic information.
         the "Filter" and "Send an E-Mail" buttons are also created here (but their listener functions are for all filtering, including exp).
         """
-        bio_filters = gui.VBox(width = 300, height = 300)
+        bio_filters = gui.VBox(width = 300, height = 450)
 
         languages = gui.HBox(width = 300, height = 100)
         hebrew_age = gui.TextInput(hint='Hebrew exposure age')
@@ -86,12 +86,15 @@ class LabApp(App):
         self.filter_bio_widgets.append(rs_from)
         self.filter_bio_widgets.append(rs_to)
 
-        send_mails = gui.CheckBoxLabel('Agreed to receiving emails')
+        send_mails = gui.CheckBoxLabel('Agreed to receive emails')
         bio_filters.append(send_mails)
         self.filter_bio_widgets.append(send_mails)
 
+#        gap = gui.HBox(height=150)
+#        bio_filters.append(send_mails)
+
         # Filter and email buttons with listener:
-        buttons_box = gui.HBox(width = 300)
+        buttons_box = gui.HBox(width = 300, height=100)
         filter_button = gui.Button('Filter', width = 80)
         filter_button.set_on_click_listener(self.filter)
         buttons_box.append(filter_button)
@@ -187,8 +190,12 @@ class LabApp(App):
         if self.filter_bio_widgets[8].get_value() == '1':
             selected_filters['send_mails'] = int(self.filter_bio_widgets[8].get_value())
         results = filt(filt_dict = selected_filters)
-        print(results)
-        ###        table_box.append_from_list(results,fill_title=True)
+        results_list_of_tuples = []
+        results_list_of_tuples.append(tuple(results.columns.values))
+        for row in results:
+            results_list_of_tuples.append(tuple(row))
+        print(results_list_of_tuples)
+        # table_box.append_from_list(results_list_of_tuples,fill_title=True)
         return results
 
     def send_email(self):
