@@ -1,5 +1,6 @@
 import remi.gui as gui
 from remi import start, App
+import pandas as pd
 
 
 class Window3(App):
@@ -9,9 +10,10 @@ class Window3(App):
     def main(self):
         self.info_dict = dict()
         window3_container = gui.VBox()
-        self.search_by = ['ID', 'e-mail', 'Name']
+        self.search_by = ['ID', 'e-mail', 'Full Name']
         self.handedness = ['Right', 'Left']
         self.gender = ['Female', 'Male']
+        self.search_widgets = dict()
 
         # Append to container
         window3_container.append(self.search_by_container())
@@ -26,12 +28,16 @@ class Window3(App):
         self.search_by_dd.add_child(0, gui.DropDownItem('Search By'))
         for idx, exp in enumerate(self.search_by):
             self.search_by_dd.add_child(idx + 1, gui.DropDownItem(exp))
+        self.search_widgets['search by field'] = self.search_by_dd
         self.search_input = gui.Input()
+        self.search_widgets['search by value'] = self.search_input
         self.search_button = gui.Button('Search')
         # Append to container
         search_by_container.append(self.search_by_dd)
         search_by_container.append(self.search_input)
         search_by_container.append(self.search_button)
+
+        self.search_button.set_on_click_listener(self.search_button_click)
 
         return search_by_container
 
@@ -50,6 +56,7 @@ class Window3(App):
         participant_table.add_child(str(id(row)), row)
 
         # Create and add the relevant rows to the table
+        # todo: add the new fields
         id_row = self.add_row('ID', 'input')
         participant_table.add_child(str(id(id_row)), id_row)
         first_name_row = self.add_row('First Name', 'input')
@@ -105,11 +112,17 @@ class Window3(App):
         participant_label = gui.Label('Participant')
         experiment_label = gui.Label('Experiment')
 
+        # Create buttons
+        update_participant = gui.Button('Update Participant')
+        update_experiment = gui.Button('Update Experiment')
+
         # Add widgets to the container
         info_container.append(participant_label)
         info_container.append(participant_table)
+        info_container.append(update_participant)
         info_container.append(experiment_label)
         info_container.append(experiment_table)
+        info_container.append(update_experiment)
         return info_container
 
     def add_row(self, label, box_type):
@@ -131,6 +144,41 @@ class Window3(App):
         item.add_child(str(id(item)), box)
         row.add_child(str(id(item)), item)
         return row
+
+    def search_button_click(self, widget):
+        """search a user based on name/email/ID"""
+        # Verify that the search fields are not empty, alert the user with dialog box
+        # todo : test input
+        if self.search_widgets['search by field'].get_value() not in self.search_by:
+            self.show_dialog('Please select a field')
+        elif self.search_widgets['search by value'].get_value() == '':
+            self.show_dialog('Please enter your input')
+        # verify that ID is an int
+        # todo: check if other ID validation is required (we currently have some partial data, e.g. 4-digits IDs)
+        elif self.search_widgets['search by field'].get_value() == 'ID':
+            self.validate_int(self.search_widgets['search by value'].get_value(),'ID')
+        # else: todo: add this function from the database code
+        #     subj_data = find_subject(self.search_widgets['search by field'].get_value())
+        # todo: call the 'enter user function' [to be added]
+
+    def add_subject(self, data, label, value):
+        if data.empty:
+            self.info_dict[label].set_value(value)
+
+
+    def validate_int(self, num, field: str, debug=False):
+        """validates that the input can be modified to int"""
+        try:
+            x = int(num)
+        except ValueError:
+            if not debug:
+                self.show_dialog(f'The field {field} can only contain numbers')
+            else:
+                raise ValueError # for testing
+
+    def show_dialog(self, message: str):
+        self.error_dialog = gui.GenericDialog(message=message)
+        self.error_dialog.show(self)
 
 
 if __name__ == '__main__':
