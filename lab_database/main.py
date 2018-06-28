@@ -3,7 +3,7 @@ import json
 import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 #import GUI
-from lab_database import *
+from back_end import *
 
 # start(GUIapp)
 
@@ -39,7 +39,22 @@ def exp_mail(email_list):
   #  for sub in sub_dict:
 
 print("...")
-print(experiment_tomorrow_mails())
+#tomorrow = experiment_tomorrow_mails()
+emails = []
+subs = get_table_subjects()
+df_exp = get_table_experiment()
+#print(df_exp['name'])
+indd = df_exp['name']=='Exp2'
+new_exp = df_exp.loc[indd]
+subid = subs['sub_ID']
+
+for id in new_exp['sub_ID']:
+    inddd = subid==id
+    emails.append(subs.loc[inddd]['mail'].to_string(index=False))
+print(emails)
+#print(get_table_subjects()['mail'].tolist())
+#print(get_table_subjects()['sub_ID']==4)
+#print(subs.iloc[0]['mail'])
 
 scheduler = BlockingScheduler()
 #job = scheduler.add_job(mail_reminders(), 'cron', hour=reminder_time)
