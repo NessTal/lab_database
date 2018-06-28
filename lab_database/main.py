@@ -3,7 +3,7 @@ import json
 import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 #import GUI
-#import database
+from lab_database import *
 
 # start(GUIapp)
 
@@ -34,7 +34,13 @@ def exp_mail(email_list):
     body_new = ""
     yag.send(to=email_list, subject=subject_new, contents=body_new)
 
+#def get_mail_list(sub_dict):
+ #   emails = []
+  #  for sub in sub_dict:
+
+print("...")
+print(experiment_tomorrow_mails())
 
 scheduler = BlockingScheduler()
-job = scheduler.add_job(mail_reminders(), 'cron', hour=reminder_time)
-scheduler.start()
+#job = scheduler.add_job(mail_reminders(), 'cron', hour=reminder_time)
+#scheduler.start()
