@@ -1,6 +1,8 @@
 import remi.gui as gui
 from remi import start, App
 import pandas as pd
+import peewee
+from lab_database import *
 
 
 class Window3(App):
@@ -149,30 +151,44 @@ class Window3(App):
         """search a user based on name/email/ID"""
         # Verify that the search fields are not empty, alert the user with dialog box
         # todo : test input
-        if self.search_widgets['search by field'].get_value() not in self.search_by:
+        field = self.search_widgets['search by field'].get_value()
+        search_value = self.search_widgets['search by value'].get_value()
+        if field not in self.search_by:
             self.show_dialog('Please select a field')
-        elif self.search_widgets['search by value'].get_value() == '':
+        elif search_value == '':
             self.show_dialog('Please enter your input')
         # verify that ID is an int
         # todo: check if other ID validation is required (we currently have some partial data, e.g. 4-digits IDs)
-        elif self.search_widgets['search by field'].get_value() == 'ID':
-            self.validate_int(self.search_widgets['search by value'].get_value(),'ID')
-        # else: todo: add this function from the database code
-        #     subj_data = find_subject(self.search_widgets['search by field'].get_value())
-        # todo: call the 'enter user function' [to be added]
+        elif field == 'ID' and not self.validate_int(search_value, 'ID'):
+            pass
+        else:
+            # print(search_value)
+            subj_data = find_subject(search_value)
+            # print(subj_data)
+            if subj_data.empty:
+                self.show_dialog('No subject found, add a new subject below')
+                self.info_dict[field].set_value(search_value)
+                # todo: call the 'enter user function' [to be added]
 
     def add_subject(self, data, label, value):
+        """add a subject's details"""
+        subject_fields = dict()
+        # if the user does not exist, add the field we searched to the table so a new user could be created
         if data.empty:
+            self.show_dialog('No subject found, add a new subject below')
             self.info_dict[label].set_value(value)
+        else:
+            pass
 
-
-    def validate_int(self, num, field: str, debug=False):
+    def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
         try:
             x = int(num)
+            return True
         except ValueError:
             if not debug:
                 self.show_dialog(f'The field {field} can only contain numbers')
+                return False
             else:
                 raise ValueError # for testing
 
