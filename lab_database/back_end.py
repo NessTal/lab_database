@@ -133,7 +133,14 @@ def filt(filt_dict, exp_list = 0):
 def experiment_tomorrow_mails():
     df_exp = get_table_experiment()
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    return df_exp.loc[df_exp['date'] == tomorrow]
+    df_exp.loc[df_exp['date'] == tomorrow]
+    emails = []
+    subs = get_table_subjects()
+    sub_id = subs['sub_ID']
+    for id in df_exp['sub_ID']:
+        ind = sub_id == id
+        emails.append(subs.loc[ind]['mail'].to_string(index=False))
+    return emails
 
 
 db.close()
