@@ -1,5 +1,6 @@
 import remi.gui as gui
 from remi import start, App
+import pandas as pd
 
 
 class Window3(App):
@@ -55,6 +56,7 @@ class Window3(App):
         participant_table.add_child(str(id(row)), row)
 
         # Create and add the relevant rows to the table
+        # todo: add the new fields
         id_row = self.add_row('ID', 'input')
         participant_table.add_child(str(id(id_row)), id_row)
         first_name_row = self.add_row('First Name', 'input')
@@ -157,6 +159,12 @@ class Window3(App):
             self.validate_int(self.search_widgets['search by value'].get_value(),'ID')
         # else: todo: add this function from the database code
         #     subj_data = find_subject(self.search_widgets['search by field'].get_value())
+        # todo: call the 'enter user function' [to be added]
+
+    def add_subject(self, data, label, value):
+        if data.empty:
+            self.info_dict[label].set_value(value)
+
 
     def validate_int(self, num, field: str, debug=False):
         """validates that the input can be modified to int"""
@@ -166,7 +174,7 @@ class Window3(App):
             if not debug:
                 self.show_dialog(f'The field {field} can only contain numbers')
             else:
-                raise ValueError
+                raise ValueError # for testing
 
     def show_dialog(self, message: str):
         self.error_dialog = gui.GenericDialog(message=message)
