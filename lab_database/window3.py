@@ -151,18 +151,22 @@ class Window3(App):
             self.show_dialog('Please select a field')
         elif self.search_widgets['search by value'].get_value() == '':
             self.show_dialog('Please enter your input')
-        # verify that ID is an int todo: test ID
+        # verify that ID is an int
+        # todo: check if other ID validation is required (we currently have some partial data, e.g. 4-digits IDs)
         elif self.search_widgets['search by field'].get_value() == 'ID':
             self.validate_int(self.search_widgets['search by value'].get_value(),'ID')
         # else: todo: add this function from the database code
         #     subj_data = find_subject(self.search_widgets['search by field'].get_value())
 
-    def validate_int(self, num, field: str):
+    def validate_int(self, num, field: str, debug=False):
         """validates that the input can be modified to int"""
         try:
             x = int(num)
         except ValueError:
-            self.show_dialog(f'The field {field} can only contain numbers')
+            if not debug:
+                self.show_dialog(f'The field {field} can only contain numbers')
+            else:
+                raise ValueError
 
     def show_dialog(self, message: str):
         self.error_dialog = gui.GenericDialog(message=message)

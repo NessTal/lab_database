@@ -7,7 +7,7 @@ from datetime import date
 
 from peewee import *
 
-db = SqliteDatabase('/Users/ranigera/Google Drive TAU/Advanced Python/lab_database/lab_database/subjects.db')
+db = SqliteDatabase(r'./subjects.db')
 
 class Subject(Model):
     first = CharField()
