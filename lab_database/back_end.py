@@ -1,6 +1,7 @@
 import datetime
 import pandas as pd
 from peewee import *
+from filt_switch import FiltSwitch
 
 db = SqliteDatabase('./subjects.db')
 
@@ -110,12 +111,13 @@ def filt(filt_dict, exp_list = 0):
     if len(filt_dict['exp_include']) == 1:
         return df_exp.loc[df_exp['name'] == filt_dict['exp_include'][0]]
     else:
-        #define some relevant stuff for the age-based exclusion:
         #now = datetime.datetime.now()
         #this_year = now.year
-        #max_year = this_year - int(filt_dict['year_from'])
-        #min_year = this_year - int(filt_dict['year_to'])
         # Exclude based on parameters other than exclusion/inclusion of experiments.
+
+        # for key, val in filt_dict.items():
+        #     df_exp = FiltSwitch().filter_by_key(key, val, df_exp)
+
         sub = df_exp.loc[(df_exp['gender'] == filt_dict['gender']) & (df_exp['year_of_birth'] >= filt_dict['year_from']) & (df_exp['year_of_birth'] <= filt_dict['year_to']) &
                          (df_exp['dominant_hand'] == filt_dict['hand']) & (df_exp['reading_span'] >= filt_dict['rs_from']) & (df_exp['reading_span'] <= filt_dict['rs_to'])]
         # Exclude by other experiments
