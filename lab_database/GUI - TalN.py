@@ -1,6 +1,6 @@
 import remi.gui as gui
 from remi import start, App
-
+from back_end import *
 
 class LabApp(App):
     def __init__(self, *args):
@@ -86,6 +86,10 @@ class LabApp(App):
         self.filter_bio_widgets.append(rs_from)
         self.filter_bio_widgets.append(rs_to)
 
+        send_mails = gui.CheckBoxLabel('Agreed to receiving emails')
+        bio_filters.append(send_mails)
+        self.filter_bio_widgets.append(send_mails)
+
         # Filter and email buttons with listener:
         buttons_box = gui.HBox(width = 300)
         filter_button = gui.Button('Filter', width = 80)
@@ -120,7 +124,7 @@ class LabApp(App):
                 item.add_child(str(id(item)),'Experiment')
                 row.add_child(str(id(item)),item)
                 exp_table.add_child(str(id(row)), row)
-        # creating a row for each experiment:
+            # creating a row for each experiment:
             row = gui.TableRow()
             item = gui.TableItem()
             cb_yes = gui.CheckBox()
@@ -180,9 +184,11 @@ class LabApp(App):
             selected_filters['rs_from'] = int(self.filter_bio_widgets[6].get_value())
         if self.filter_bio_widgets[7].get_value() != '':
             selected_filters['rs_to'] = int(self.filter_bio_widgets[7].get_value())
-        print(selected_filters)
-        results = [(1,2,3,4), (5,6,7,8), (9,10,11,12)]
-###        table_box.append_from_list(results,fill_title=True)
+        if self.filter_bio_widgets[8].get_value() == '1':
+            selected_filters['send_mails'] = int(self.filter_bio_widgets[8].get_value())
+        results = filt(filt_dict = selected_filters)
+        print(results)
+        ###        table_box.append_from_list(results,fill_title=True)
         return results
 
     def send_email(self):
@@ -199,4 +205,3 @@ class LabApp(App):
 
 
 start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=True)
-
