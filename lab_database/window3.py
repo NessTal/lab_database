@@ -73,6 +73,10 @@ class Window3(App):
         participant_table.add_child(str(id(year_of_birth_row)), year_of_birth_row)
         handedness_row = self.add_row('Handedness', 'drop_down')
         participant_table.add_child(str(id(handedness_row)), handedness_row)
+        hebrew_age_row = self.add_row('Hebrew Age', 'spinbox')
+        participant_table.add_child(str(id(hebrew_age_row)), hebrew_age_row)
+        other_languages_row = self.add_row('Other Languages', 'input')
+        participant_table.add_child(str(id(other_languages_row)), other_languages_row)
         reading_span_row = self.add_row('Reading Span', 'spinbox')
         participant_table.add_child(str(id(reading_span_row)), reading_span_row)
         comments_row = self.add_row('Comments', 'input')
@@ -173,12 +177,11 @@ class Window3(App):
                 self.info_dict[field].set_value(search_value)
             # else, add the subject's fields to the table
             else:
-                pass  # todo: call add_subject
+                self.add_subject(subj_data)
 
     def add_subject(self, data):
         """add a subject's details"""
-        # print(data['first'][0])
-        self.info_dict['ID'].set_value(data['sub_ID'][0])
+        self.info_dict['ID'].set_value(str(data['sub_ID'][0]))
         self.info_dict['First Name'].set_value(data['first'][0])
         self.info_dict['Last Name'].set_value(data['last'][0])
         self.info_dict['e-mail'].set_value(data['mail'][0])
@@ -187,6 +190,8 @@ class Window3(App):
         self.info_dict['Handedness'].set_value(data['dominant_hand'][0])
         self.info_dict['Reading Span'].set_value(data['reading_span'][0])
         self.info_dict['Comments'].set_value(data['notes'][0])
+        self.info_dict['Hebrew Age'].set_value(data['hebrew_age'][0])
+        self.info_dict['Other Languages'].set_value(data['other_languages'][0])
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
