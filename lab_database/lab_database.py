@@ -13,18 +13,18 @@ database and related fuctions:
 db = SqliteDatabase('./subjects.db')
 
 class Subject(Model):
-    first = CharField()
-    last = CharField()
+    first = CharField(null=True)
+    last = CharField(null=True)
     sub_ID = IntegerField()
-    year_of_birth = IntegerField()
-    dominant_hand = FixedCharField(max_length=1)
-    mail = CharField()
-    notes = CharField()
-    send_mails = BooleanField()
-    reading_span = IntegerField()
-    gender = CharField()
-    hebrew_age = IntegerField()
-    other_languages = CharField()
+    year_of_birth = IntegerField(null=True)
+    dominant_hand = FixedCharField(null=True)
+    mail = CharField(null=True)
+    notes = CharField(null=True)
+    send_mails = BooleanField(null=True)
+    reading_span = IntegerField(null=True)
+    gender = CharField(null=True)
+    hebrew_age = IntegerField(null=True)
+    other_languages = CharField(null=True)
 
     class Meta:
         database = db # This model uses the "subjects.db" database.
@@ -32,12 +32,12 @@ class Subject(Model):
 
 class Experiment(Model):
     subject = ForeignKeyField(Subject, backref='experiments')
-    sub_code = CharField()
+    sub_code = CharField(null=True)
     name = CharField()
-    date = DateTimeField()
-    participated = BooleanField()
-    notes = CharField()
-    exp_list = CharField()
+    date = DateTimeField(null=True)
+    participated = BooleanField(null=True)
+    notes = CharField(null=True)
+    exp_list = CharField(null=True)
 
     class Meta:
         database = db # this model uses the "subjects.db" database
@@ -60,15 +60,6 @@ def insert_or_update_sub(dict_new_sub):
         print('new_one')
         Subject.create(**dict_new_sub).save()
 
-##########
-
-# fields = ['sub_ID', 'year_of_birth', 'dominant_hand', 'mail', 'send-mails', 'reading_span','gender', 'hebrew_age', 'other_languages']
-dict_new_sub = {'sub_ID': 1, 'first': 'vv', 'last': 'b', 'notes': 'dsd', 'year_of_birth': 1999,
-                'dominant_hand': 'R', 'mail': 'abcmail.com', 'send_mails': True,
-                'reading_span': 3, 'gender': 'Male', 'hebrew_age': 0, 'other_languages': 'none'}
-insert_or_update_sub(dict_new_sub)
-
-##########
 
 def unique_experiments():
     return list(set([exp.name for exp in Experiment.select()]))
@@ -82,7 +73,7 @@ def get_table_subjects():
     return pd.DataFrame.from_dict(data_dict).drop(columns=['id'])
 
 def find_subject(identifier):
-    df = get_table_subjects
+    df = get_table_subjects()
     if ' ' in str(identifier):
         first_name, last_name = identifier.split(" ", 1)
         sub = df.loc[(df['first'] == first_name) & (df['last'] == last_name)]
@@ -97,13 +88,13 @@ def find_subject(identifier):
 
 def insert_experiment(dict_new_exp):
     # check if the subject is in Subject data base and add if needed:
-    _, is_in = find_subject(dict_new_exp['subject'])
+    _, is_in = find_subject(dict_new_exp['sub_ID'])
     if not is_in:
-        insert_or_update_sub({'first':'', 'last':'', 'sub_ID':dict_new_exp['subject'],
+        insert_or_update_sub({'first':'', 'last':'', 'sub_ID':dict_new_exp['sub_ID'],
                               'year_of_birth':0,'dominant_hand':'','mail':'','notes':''})
     # match the internal identifier of the subject between the tables.
     sub_dict = {}
-    query = Subject.select().where(Subject.sub_ID == dict_new_exp['subject']).dicts()
+    query = Subject.select().where(Subject.sub_ID == dict_new_exp['sub_ID']).dicts()
     for row in query:
         for key,val in row.items():
             print(key,val)
@@ -120,6 +111,22 @@ def get_table_experiment():
             data_dict.setdefault(key, []).append(val)
     return pd.DataFrame.from_dict(data_dict).drop(columns=['id','subject'])
 
+##########
+
+# fields = ['sub_ID', 'year_of_birth', 'dominant_hand', 'mail', 'send-mails', 'reading_span','gender', 'hebrew_age', 'other_languages']
+dict_new_sub = {'sub_ID': 1, 'first':'a','last': 'b', 'notes': 'dsd', 'year_of_birth': 1999,
+                'dominant_hand': 'Right', 'mail': 'abc@mail.com', 'send_mails': True,
+                'reading_span': 3, 'gender': 'Male', 'hebrew_age': 0, 'other_languages': 'none'}
+insert_or_update_sub(dict_new_sub)
+
+dict_new_exp = {'sub_ID': 4, 'first':'a','last': 'b', 'notes': 'dsd', 'year_of_birth': 2005,
+                'dominant_hand': 'Left', 'mail': 'abc@mail.com', 'send_mails': True,
+                'reading_span': 3, 'gender': 'Male', 'hebrew_age': 0, 'other_languages': 'none','name':'Exp2'}
+insert_experiment(dict_new_exp)
+print(unique_experiments())
+
+
+##########
 
 def filt(filt_dict):
     df_exp = get_table_experiment()
