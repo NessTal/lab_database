@@ -181,6 +181,7 @@ class Window3(App):
 
     def add_subject(self, data):
         """add a subject's details"""
+        # access the relevant widgets and set the values in the DataFrame
         self.info_dict['ID'].set_value(str(data['sub_ID'][0]))
         self.info_dict['First Name'].set_value(data['first'][0])
         self.info_dict['Last Name'].set_value(data['last'][0])
@@ -188,10 +189,13 @@ class Window3(App):
         self.info_dict['Gender'].set_value(data['gender'][0])
         self.info_dict['Year of Birth'].set_value(data['year_of_birth'][0])
         self.info_dict['Handedness'].set_value(data['dominant_hand'][0])
-        self.info_dict['Reading Span'].set_value(data['reading_span'][0])
+        self.info_dict['Reading Span'].set_value(int(data['reading_span'][0]))
         self.info_dict['Comments'].set_value(data['notes'][0])
-        self.info_dict['Hebrew Age'].set_value(data['hebrew_age'][0])
+        self.info_dict['Hebrew Age'].set_value(int(data['hebrew_age'][0]))
         self.info_dict['Other Languages'].set_value(data['other_languages'][0])
+
+    def update_subject(self):
+        pass
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
