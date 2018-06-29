@@ -1,0 +1,6 @@
+1. add to self.XXX_filters
+2. add to order_for_display
+3. add to filt_switch
+4. add to db - ???
+
+*** if there is a range field with values higher then 1000000 - change default 'to' value if the filter function.

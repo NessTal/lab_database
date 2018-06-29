@@ -4,17 +4,26 @@ from back_end import *
 
 class LabApp(App):
     def __init__(self, *args):
-        self.exp_names = ['A','B','Exp1','Exp2','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C'] ######### to be somehow received from the database
+        self.exp_names = unique_experiments() # ['A','B','Exp1','Exp2','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C'] ######### to be somehow received from the database
         # lists containing the filter's widgets, for the function filter() to get their values:
-        self.filter_bio_widgets = []
+        self.filter_bio_widgets = {}
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
         self.filter_table = []
+
+        self.range_filters = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading Span'}
+        self.dropdown_filters = {'gender':['gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
+        self.textinput_filters = {'other_languages':'Other languages'}
+        self.checkbox_filters = {'send_mails':'Agreed to recieve emails'}
+        self.bio_widgets_for_display = {}
+
+        # attributes for the Edit tab
         self.info_dict = dict()
         self.search_by = ['ID', 'e-mail', 'Full Name']
         self.handedness = ['Right', 'Left']
         self.gender = ['Female', 'Male']
         self.search_widgets = dict()
+
         super(LabApp, self).__init__(*args)
 
     def main(self):
@@ -50,60 +59,58 @@ class LabApp(App):
         creates filters for the subject's biographic information.
         the "Filter" and "Send an E-Mail" buttons are also created here (but their listener functions are for all filtering, including exp).
         """
-        bio_filters = gui.VBox(width = 350, height = 450)
+        # create range filters:
+        for filter, text in self.range_filters.items():
+            box = gui.HBox(width = 350, height = 50)
+            fil_label = gui.Label(text,width = 300)
+            fil_from = gui.TextInput(hint='from')
+            fil_to = gui.TextInput(hint='to')
+            box.append(fil_label)
+            box.append(fil_from)
+            box.append(fil_to)
+            self.filter_bio_widgets[filter] = [fil_from, fil_to]
+            self.bio_widgets_for_display[filter] = box
 
-        languages = gui.HBox(width = 350, height = 100)
-        hebrew_age = gui.TextInput(hint='Hebrew exposure age')
-        languages.append(hebrew_age)
-        other_languages = gui.TextInput(hint='other languages')
-        languages.append(other_languages)
-        bio_filters.append(languages)
-        self.filter_bio_widgets.append(hebrew_age)
-        self.filter_bio_widgets.append(other_languages)
+        # create dropdown list filters:
+        for filter, values in self.dropdown_filters.items():
+            fil = gui.DropDown()
+            for idx, val in enumerate(values):
+                fil.add_child(idx,gui.DropDownItem(val))
+            box = gui.HBox(width = 350, height = 50)
+            box.append(fil)
+            self.filter_bio_widgets[filter] = fil
+            self.bio_widgets_for_display[filter] = box
 
-        gender = gui.DropDown()
-        gender.add_child(0,gui.DropDownItem('Gender'))
-        gender.add_child(1,gui.DropDownItem('Male'))
-        gender.add_child(2,gui.DropDownItem('Female'))
-        bio_filters.append(gender)
-        self.filter_bio_widgets.append(gender)
-
-        years = gui.HBox(width = 350, height = 100)
-        years_label = gui.Label('Year of birth',width = 300)
-        years_from = gui.TextInput(hint='from')
-        years_to = gui.TextInput(hint='to')
-        years.append(years_label)
-        years.append(years_from)
-        years.append(years_to)
-        bio_filters.append(years)
-        self.filter_bio_widgets.append(years_from)
-        self.filter_bio_widgets.append(years_to)
-
-        hand = gui.DropDown()
-        hand.add_child(0,gui.DropDownItem('Dominant hand'))
-        hand.add_child(1,gui.DropDownItem('Right'))
-        hand.add_child(2,gui.DropDownItem('Left'))
-        bio_filters.append(hand)
-        self.filter_bio_widgets.append(hand)
-
-        rs = gui.HBox(width = 350, height = 100)
-        rs_label = gui.Label('Reading Span',width = 300)
-        rs_from = gui.TextInput(hint='from')
-        rs_to = gui.TextInput(hint='to')
-        rs.append(rs_label)
-        rs.append(rs_from)
-        rs.append(rs_to)
-        bio_filters.append(rs)
-        self.filter_bio_widgets.append(rs_from)
-        self.filter_bio_widgets.append(rs_to)
-
-        send_mails = gui.CheckBoxLabel('Agreed to receive emails')
-        bio_filters.append(send_mails)
-        self.filter_bio_widgets.append(send_mails)
+        # create text input filters:
+        for filter, text in self.textinput_filters.items():
+            fil = gui.TextInput(hint=text)
+            box = gui.HBox(width = 350, height = 50)
+            box.append(fil)
+            self.filter_bio_widgets[filter] = fil
+            self.bio_widgets_for_display[filter] = box
 
 
-        # Filter, experiment list, and email buttons with listener:
-        buttons_box = gui.HBox(width = 350, height=100)
+        # create checkbox filters:
+        for filter, text in self.checkbox_filters.items():
+            fil = gui.CheckBoxLabel(text)
+            box = gui.HBox(width = 350, height = 50)
+            box.append(fil)
+            self.filter_bio_widgets[filter] = fil
+            self.bio_widgets_for_display[filter] = box
+
+        # position filters:
+        order_for_display = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
+
+        bio_filters = gui.Table()
+        for idx, filter in enumerate(order_for_display):
+            row = gui.TableRow()
+            item = gui.TableItem()
+            item.add_child(0,self.bio_widgets_for_display[filter])
+            row.add_child(0,item)
+            bio_filters.add_child(idx,row)
+
+        # Buttons and listener:
+        buttons_box = gui.HBox(width = 350)
         filter_button = gui.Button('Filter', width = 70)
         filter_button.set_on_click_listener(self.filter_listener)
         buttons_box.append(filter_button)
@@ -113,9 +120,14 @@ class LabApp(App):
         email_button = gui.Button('Send an E-Mail', width = 140)
         email_button.set_on_click_listener(self.send_email)
         buttons_box.append(email_button)
-        bio_filters.append(buttons_box)
+        row = gui.TableRow()
+        item = gui.TableItem()
+        item.add_child(0,buttons_box)
+        row.add_child(0,item)
+        bio_filters.add_child(len(order_for_display)+1,row)
 
         return bio_filters
+
 
     def exp_filters(self):
         """
@@ -123,7 +135,7 @@ class LabApp(App):
         """
         exp_filters = gui.HBox()
         for idx, exp in enumerate(self.exp_names):
-            if (idx % 15) == 0:
+            if (idx % 15) == 0: # starts an new table after each 15 experiments
                 exp_table = gui.Table()
                 # creating the titles:
                 row = gui.TableRow()
@@ -186,31 +198,45 @@ class LabApp(App):
         if selected_exp_no != []:
             selected_filters['exp_exclude'] = selected_exp_no
 
-        #bio filters: 0-1: languages, 2: gender, 3-4: years, 5: hand, 6-7: rs
-        if (self.filter_bio_widgets[0].get_value() != ''):
-            selected_filters['hebrew_age'] = int(self.filter_bio_widgets[0].get_value())
-        if (self.filter_bio_widgets[1].get_value() != ''):
-            selected_filters['other_languages'] = self.filter_bio_widgets[1].get_value()
-        if (self.filter_bio_widgets[2].get_value() != None) and (self.filter_bio_widgets[2].get_value() != 'Gender'):
-            selected_filters['gender'] = self.filter_bio_widgets[2].get_value()
-        if self.filter_bio_widgets[3].get_value() != '':
-            selected_filters['year_from'] = int(self.filter_bio_widgets[3].get_value())
-        if self.filter_bio_widgets[4].get_value() != '':
-            selected_filters['year_to'] = int(self.filter_bio_widgets[4].get_value())
-        if (self.filter_bio_widgets[5].get_value() != None) and (self.filter_bio_widgets[5].get_value() != 'Dominant hand' ):
-            selected_filters['hand'] = self.filter_bio_widgets[5].get_value()
-        if self.filter_bio_widgets[6].get_value() != '':
-            selected_filters['rs_from'] = int(self.filter_bio_widgets[6].get_value())
-        if self.filter_bio_widgets[7].get_value() != '':
-            selected_filters['rs_to'] = int(self.filter_bio_widgets[7].get_value())
-        if self.filter_bio_widgets[8].get_value() == '1':
-            selected_filters['send_mails'] = int(self.filter_bio_widgets[8].get_value())
+        # bio filters:
+        # range filters:
+        for filter in self.range_filters.keys():
+            from_val = self.filter_bio_widgets[filter][0].get_value()
+            to_val = self.filter_bio_widgets[filter][1].get_value()
+            if from_val != '' :
+                if to_val != '' :
+                    selected_filters[filter] = [int(from_val), int(to_val)]
+                else:
+                    selected_filters[filter] = [int(from_val), 1000000]
+            else:
+                if to_val != '' :
+                    selected_filters[filter] = [0, int(to_val)]
+
+        # drop down filters:
+        for filter, text in self.dropdown_filters.items():
+            val = self.filter_bio_widgets[filter].get_value()
+            if (val != None) and (val != text[0]):
+                selected_filters[filter] = val
+
+        # text input filters:
+        for filter in self.textinput_filters.keys():
+            val = self.filter_bio_widgets[filter].get_value()
+            if val != '':
+                selected_filters[filter] = val
+
+        # chackbox filters:
+        for filter in self.checkbox_filters.keys():
+            val = self.filter_bio_widgets[filter].get_value()
+            if val == True:
+                selected_filters[filter] = val
+
+        # send selected filters (dict) to filt and receive a data frame with the filtered results:
+        print(selected_filters)
         results = filt(filt_dict = selected_filters, exp_list = exp_list)
         results_list_of_tuples = []
         results_list_of_tuples.append(tuple(results.columns.values))
         for idx, row in results.iterrows():
             results_list_of_tuples.append(tuple(row))
-        print(results_list_of_tuples)
         self.filter_table.append_from_list(results_list_of_tuples,fill_title=True)
         return results
 

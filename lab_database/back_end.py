@@ -12,7 +12,7 @@ class Subject(Model):
     year_of_birth = IntegerField(null=True)
     dominant_hand = FixedCharField(null=True)
     mail = CharField(null=True)
-    notes = CharField(null=True)
+    subj_notes = CharField(null=True)
     send_mails = BooleanField(null=True)
     reading_span = IntegerField(null=True)
     gender = CharField(null=True)
@@ -29,7 +29,7 @@ class Experiment(Model):
     name = CharField()
     date = DateTimeField(null=True)
     participated = BooleanField(null=True)
-    notes = CharField(null=True)
+    exp_notes = CharField(null=True)
     exp_list = CharField(null=True)
 
     class Meta:
@@ -104,31 +104,51 @@ def get_table_experiment():
             data_dict.setdefault(key, []).append(val)
     return pd.DataFrame.from_dict(data_dict).drop(columns=['id'])
 
+"""
+def participated_in():
+    df = get_table_experiment()
+    df = pd.DataFrame()
+    for subject in df['sub_ID'].unique():
+        sub_df = df.loc[df['sub_ID' == ]]
+"""
 
 def filt(filt_dict, exp_list = 0):
-    df_exp = get_table_experiment()
-    # If experiment list is requested, just return the full data of this experiment.
-    # for now it gives the same output as it would if exp_list was 0, but it is for future use..
-    if exp_list == 1:
-        return df_exp.loc[df_exp['name'] == filt_dict['exp_include'][0]]
+    if exp_list == 1: # If experiment list is requested, return a df that includes the fields specific for this experiment.
+        df = get_table_experiment()
+        df = df.loc[df['name'] == filt_dict['exp_include'][0]]
+        for key, val in filt_dict.items():
+            df = FiltSwitch().filter_by_key(key, val, df)
+        ### need to add exclude by experiment
+
     else:
+        exp = get_table_experiment()
+        df = get_table_subjects()
+
         #now = datetime.datetime.now()
         #this_year = now.year
 
         # Exclude based on parameters other than exclusion/inclusion of experiments.
-        sub = df_exp
         for key, val in filt_dict.items():
-            sub = FiltSwitch().filter_by_key(key, val, sub)
+            df = FiltSwitch().filter_by_key(key, val, df)
 
-        # Exclude by experiments
-        if 'exp_exclude' in filt_dict:
-            for val in filt_dict['exp_exclude']:
-                sub = sub.loc[sub['name'] != val]
-        # Include by experiments (only if exclusion by experiment was entered)
-        if 'exp_include' in filt_dict:
-            for val in filt_dict['exp_include']:
-                sub = sub.loc[sub['name'] == val]
-        return sub
+
+        for subject in df['sub_ID'].values:
+            sub_exp = exp.loc[exp['sub_ID'] == subject]
+            sub_exp = sub_exp['name'].values
+
+            # Exclude by experiments
+            if 'exp_exclude' in filt_dict:
+                for val in filt_dict['exp_exclude']:
+                    if val in sub_exp:
+                        df = df.loc[df['sub_ID' != subject]]
+
+            # Include by experiments
+            if 'exp_include' in filt_dict:
+                for val in filt_dict['exp_include']:
+                    if (val in sub_exp) == False:
+                        df = df.loc[df['sub_ID' != subject]]
+    return df
+
 
 def experiment_tomorrow_mails():
     df_exp = get_table_experiment()
