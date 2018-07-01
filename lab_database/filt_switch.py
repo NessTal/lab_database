@@ -15,7 +15,9 @@ class FiltSwitch:
         return df.loc[df[key] == val]
 
     def __filt_range(self, key, val, df):
-        return df.loc[(df[key] >= val[0]) and (df[key] <= val[1])]
+        df = df.loc[list(df[key] >= val[0])]
+        df = df.loc[list(df[key] <= val[1])]
+        return df
 
 
     def filter_by_key(self, key, val, df):

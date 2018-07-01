@@ -23,12 +23,15 @@ def mail_reminders():
 
 
 # new experiment announcement
-def exp_mail(sub_df):
+def exp_mail(sub_df,subject='',contents=''):
     email_list = sub_df['mail'].tolist()
-    subject_new = "ניסוי חדש!"
-    body_new = """אתם מוזמנים להשתתף בניסוי חדש
-    תודה"""
-    yag.send(to=email_list, subject=subject_new, contents=body_new)
+    if subject == '':
+        subject = "ניסוי חדש!"
+    if contents == '':
+        body = """יש לנו ניסוי חדש במעבדה, ונשמח אם תרצו להשתתף בו.
+        במידה ואתם מעוניינים, פנו אלינו לפרטים נוספים.
+        תודה"""
+    yag.send(to=email_list, subject=subject, contents=body)
 
 
 scheduler = BlockingScheduler()

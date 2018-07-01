@@ -1,6 +1,8 @@
-1. add to self.XXX_filters
-2. add to order_for_display
-3. add to filt_switch
-4. add to db - ???
+1. add to self.XXX_filters in GUI
+2. add to order_for_display in GUI
+3. add to self.switch_dict in filt_switch
+4. add to col_order_subject and col_order_experiment in back_end (in get_table_XXX)
+7. add to 'Add or Edit' tab - ???
+6. add to db - ???
 
 *** if there is a range field with values higher then 1000000 - change default 'to' value if the filter function.

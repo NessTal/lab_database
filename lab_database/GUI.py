@@ -1,21 +1,26 @@
 import remi.gui as gui
 from remi import start, App
 from back_end import *
+#from main import *
 
 class LabApp(App):
     def __init__(self, *args):
-        self.exp_names = unique_experiments() # ['A','B','Exp1','Exp2','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C','A','B','C'] ######### to be somehow received from the database
-        # lists containing the filter's widgets, for the function filter() to get their values:
-        self.filter_bio_widgets = {}
-        self.filter_exp_yes_widgets = []
-        self.filter_exp_no_widgets = []
-        self.filter_table = []
-
+        self.exp_names = unique_experiments()
         self.range_filters = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading Span'}
         self.dropdown_filters = {'gender':['gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
         self.textinput_filters = {'other_languages':'Other languages'}
         self.checkbox_filters = {'send_mails':'Agreed to recieve emails'}
+
+        # lists containing the filter's widgets, for the function filter() to get their values:
+        self.filter_bio_widgets = {}
+        self.filter_exp_yes_widgets = []
+        self.filter_exp_no_widgets = []
+        self.filter_export_file_name = []
+        self.filter_table = gui.TableWidget(0,0)
+        self.exp_filters_for_refresh = gui.HBox()
         self.bio_widgets_for_display = {}
+
+        self.filter_results = pd.DataFrame()
 
         # attributes for the Edit tab
         self.info_dict = dict()
@@ -44,14 +49,14 @@ class LabApp(App):
         """
         creates the filters container by calling for its three parts (two that create filters and one that creates the table).
         """
-        filters_widget = gui.VBox(width = '100%', height = 1000) # the entire tab
+        filters_widget = gui.VBox(width = '100%', height = '1000') # the entire tab
         filters_box = gui.HBox(width = 800, height = 50)  # the upper part
-        filters_box.append(self.exp_filters())
+        self.exp_filters_for_refresh = gui.HBox()
+        self.exp_filters()
+        filters_box.append(self.exp_filters_for_refresh)
         filters_box.append(self.bio_filters())
-        table_box = gui.TableWidget(0,0)    # the bottom part
-        self.filter_table = table_box
         filters_widget.append(filters_box)
-        filters_widget.append(table_box)
+        filters_widget.append(self.filter_table)
         return filters_widget
 
     def bio_filters(self):
@@ -63,8 +68,8 @@ class LabApp(App):
         for filter, text in self.range_filters.items():
             box = gui.HBox(width = 350, height = 50)
             fil_label = gui.Label(text,width = 300)
-            fil_from = gui.TextInput(hint='from')
-            fil_to = gui.TextInput(hint='to')
+            fil_from = gui.TextInput(hint='from',height=18)
+            fil_to = gui.TextInput(hint='to',height=18)
             box.append(fil_label)
             box.append(fil_from)
             box.append(fil_to)
@@ -73,7 +78,7 @@ class LabApp(App):
 
         # create dropdown list filters:
         for filter, values in self.dropdown_filters.items():
-            fil = gui.DropDown()
+            fil = gui.DropDown(height=20)
             for idx, val in enumerate(values):
                 fil.add_child(idx,gui.DropDownItem(val))
             box = gui.HBox(width = 350, height = 50)
@@ -83,7 +88,7 @@ class LabApp(App):
 
         # create text input filters:
         for filter, text in self.textinput_filters.items():
-            fil = gui.TextInput(hint=text)
+            fil = gui.TextInput(hint=text,height=18)
             box = gui.HBox(width = 350, height = 50)
             box.append(fil)
             self.filter_bio_widgets[filter] = fil
@@ -92,7 +97,7 @@ class LabApp(App):
 
         # create checkbox filters:
         for filter, text in self.checkbox_filters.items():
-            fil = gui.CheckBoxLabel(text)
+            fil = gui.CheckBoxLabel(text,height=18)
             box = gui.HBox(width = 350, height = 50)
             box.append(fil)
             self.filter_bio_widgets[filter] = fil
@@ -125,6 +130,18 @@ class LabApp(App):
         item.add_child(0,buttons_box)
         row.add_child(0,item)
         bio_filters.add_child(len(order_for_display)+1,row)
+        export_box = gui.HBox(width = 350, height= 50)
+        export_button = gui.Button('Export to Excel', width = 140)
+        export_button.set_on_click_listener(self.export_to_excel_listener)
+        export_file_name_input = gui.TextInput(hint='file name', width = 195, height=22)
+        export_box.append(export_button)
+        export_box.append(export_file_name_input)
+        self.filter_export_file_name = export_file_name_input
+        row = gui.TableRow()
+        item = gui.TableItem()
+        item.add_child(0,export_box)
+        row.add_child(0,item)
+        bio_filters.add_child(len(order_for_display)+2,row)
 
         return bio_filters
 
@@ -133,7 +150,6 @@ class LabApp(App):
         """
         creates an "include" and "exclude" checkbox for each experiment.
         """
-        exp_filters = gui.HBox()
         for idx, exp in enumerate(self.exp_names):
             if (idx % 15) == 0: # starts an new table after each 15 experiments
                 exp_table = gui.Table()
@@ -167,14 +183,13 @@ class LabApp(App):
             self.filter_exp_yes_widgets.append(cb_yes)
             self.filter_exp_no_widgets.append(cb_no)
             if (idx % 15) == 0:
-                exp_filters.append(exp_table)
-        return exp_filters
+                self.exp_filters_for_refresh.append(exp_table)
 
     def filter_listener(self, *args):
         self.filter(exp_list = 0)
 
     def exp_list_listener(self, *args):
-        self.filter(exp_list = 1)
+        self.filter(exp_list = 1)           # todo: add a warning when more/less then one include experiment was selected.
 
     def filter(self, exp_list=0, *args):
         """
@@ -232,16 +247,24 @@ class LabApp(App):
 
         # send selected filters (dict) to filt and receive a data frame with the filtered results:
         print(selected_filters)
-        results = filt(filt_dict = selected_filters, exp_list = exp_list)
+        self.filter_results = filt(filt_dict = selected_filters, exp_list = exp_list)
         results_list_of_tuples = []
-        results_list_of_tuples.append(tuple(results.columns.values))
-        for idx, row in results.iterrows():
+        results_list_of_tuples.append(tuple(self.filter_results.columns.values))
+        for idx, row in self.filter_results.iterrows():
             results_list_of_tuples.append(tuple(row))
+        self.filter_table.empty()
         self.filter_table.append_from_list(results_list_of_tuples,fill_title=True)
-        return results
+        return self.filter_results
+
+    def export_to_excel_listener(self, *args):
+        file_name = self.filter_export_file_name.get_value()
+        file = '../exported files/'+file_name+'.csv'
+        self.filter_results.to_csv(file, index=False)
+        self.show_dialog(f'Exported to: {file}')
 
     def send_email(self):
-        print('emails') ######### add noa's function
+        #exp_mail(self.filter_results,subject='',contents='')
+        self.show_dialog('E-mails were sent!')
 
     """
     Edit tab
@@ -252,6 +275,7 @@ class LabApp(App):
         # Append to container
         window3_container.append(self.search_by_container())
         window3_container.append(self.participant_info())
+        window3_container.append(self.import_from_excel())
         return window3_container # edit_widget
 
     def search_by_container(self):
@@ -399,31 +423,34 @@ class LabApp(App):
         else:
             if field == 'ID':
                 search_value = int(search_value)
-            subj_data = find_subject(search_value)
-            subj_data = subj_data[0]
+            # todo: add experiment parameter to allow for editing a row in the Experiment db
+            subj_data = get_if_exists(search_value)
             # if the user does not exist, add the field we searched to the table so a new user could be created
-            if subj_data.empty:
+            if type(subj_data) != pd.DataFrame:
                 print(subj_data)  # todo: delete this later
                 self.show_dialog('No subject found, you can add a new subject below')
-                self.info_dict[field].set_value(search_value)
+                self.info_dict[field].set_value(search_value) # todo: it doesn't work for full name
+                # todo: clear all fields (other then the searched field)
             # else, add the subject's fields to the table
             else:
                 self.add_subject(subj_data)
 
     def add_subject(self, data):
         """add a subject's details"""
+        print(data['sub_ID'].values)
         # access the relevant widgets and set the values in the DataFrame
-        self.info_dict['ID'].set_value(str(data['sub_ID'][0]))
-        self.info_dict['First Name'].set_value(data['first'][0])
-        self.info_dict['Last Name'].set_value(data['last'][0])
-        self.info_dict['e-mail'].set_value(data['mail'][0])
-        self.info_dict['Gender'].set_value(data['gender'][0])
-        self.info_dict['Year of Birth'].set_value(data['year_of_birth'][0])
-        self.info_dict['Handedness'].set_value(data['dominant_hand'][0])
-        self.info_dict['Reading Span'].set_value(int(data['reading_span'][0]))
-        self.info_dict['Comments'].set_value(data['notes'][0])
-        self.info_dict['Hebrew Age'].set_value(int(data['hebrew_age'][0]))
-        self.info_dict['Other Languages'].set_value(data['other_languages'][0])
+        self.info_dict['ID'].set_value(str(data['sub_ID'].values[0]))
+        self.info_dict['First Name'].set_value(data['first'].values[0])
+        self.info_dict['Last Name'].set_value(data['last'].values[0])
+        self.info_dict['e-mail'].set_value(data['mail'].values[0])
+        self.info_dict['Gender'].set_value(data['gender'].values[0])
+        self.info_dict['Year of Birth'].set_value(data['year_of_birth'].values[0])
+        self.info_dict['Handedness'].set_value(data['dominant_hand'].values[0])
+        self.info_dict['Reading Span'].set_value(int(data['reading_span'].values[0]))
+        self.info_dict['Comments'].set_value(data['sunj_notes'].values[0])
+        self.info_dict['Hebrew Age'].set_value(int(data['hebrew_age'].values[0]))
+        self.info_dict['Other Languages'].set_value(data['other_languages'].values[0])
+        # todo: also add experiment fields
 
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
@@ -466,8 +493,10 @@ class LabApp(App):
                           'notes': notes,
                           'hebrew_age': hebrew_age,
                           'other_languages': other_languages,
-                          'name': 'no_exp'}
-            insert_experiment(subject_info)
+                          'exp_name': 'no_exp'}
+            add_or_update(subject_info)
+            self.refresh_exp_lists()
+            self.show_dialog('The parcitipant was updated')
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
@@ -484,6 +513,30 @@ class LabApp(App):
     def show_dialog(self, message: str):
         self.error_dialog = gui.GenericDialog(message=message, width='30%', height='15%')
         self.error_dialog.show(self)
+
+    def import_from_excel(self):
+        import_box = gui.HBox(width = 300, height = 80)
+        import_file = gui.TextInput(hint='File name', width = 140, height = 18)
+        import_button = gui.Button('Import from excel', width = 140)
+        import_button.set_on_click_listener(self.import_from_excel_listener)
+        import_box.append(import_button)
+        import_box.append(import_file)
+        self.import_file_name = import_file
+        return import_box
+
+    def import_from_excel_listener(self,*args):
+        file_name = self.import_file_name.get_value()
+        file = '../import/'+file_name+'.csv'
+        import_from_excel(file)
+        self.refresh_exp_lists()
+        self.show_dialog(f'Imported from: {file}')
+
+    def refresh_exp_lists(self, *args): # todo!
+        self.exp_names = unique_experiments()
+        self.filter_exp_yes_widgets = []
+        self.filter_exp_no_widgets = []
+        self.exp_filters_for_refresh.empty()
+        self.exp_filters()
 
 
     """
