@@ -428,7 +428,7 @@ class LabApp(App):
             # if the user does not exist, add the field we searched to the table so a new user could be created
             if type(subj_data) != pd.DataFrame:
                 self.show_dialog('No subject found, you can add a new subject below')
-                self.info_dict[field].set_value(search_value) # todo: it doesn't work for full name
+                self.info_dict[field].set_value(str(search_value)) # todo: it doesn't work for full name
                 # todo: clear all fields (other then the searched field)
             # else, add the subject's fields to the table
             else:
