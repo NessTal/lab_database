@@ -7,9 +7,14 @@ class LabApp(App):
     def __init__(self, *args):
         self.exp_names = unique_experiments()
         self.range_filters = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading Span'}
-        self.dropdown_filters = {'gender':['gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
+        self.dropdown_filters = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
         self.textinput_filters = {'other_languages':'Other languages'}
         self.checkbox_filters = {'send_mails':'Agreed to recieve emails'}
+        #self.date_subject = {}
+        #self.date_experiment = {}
+        #self.order_filters = []
+        #self.order_subject = []
+        #self.order_experiment = []
 
         # lists containing the filter's widgets, for the function filter() to get their values:
         self.filter_bio_widgets = {}
