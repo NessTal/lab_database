@@ -6,15 +6,19 @@ from back_end import *
 class LabApp(App):
     def __init__(self, *args):
         self.exp_names = unique_experiments()
-        self.range_filters = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading Span'}
-        self.dropdown_filters = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
-        self.textinput_filters = {'other_languages':'Other languages'}
-        self.checkbox_filters = {'send_mails':'Agreed to recieve emails'}
-        #self.date_subject = {}
-        #self.date_experiment = {}
-        #self.order_filters = []
-        #self.order_subject = []
-        #self.order_experiment = []
+        self.range_subject = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading Span'}
+        self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
+        self.textinput_subject = {'other_languages':'Other languages'}
+        self.checkbox_subject = {'send_mails':'Agreed to recieve emails'}
+        self.date_subject = {}
+        self.range_experiment = {}
+        self.dropdown_experiment = {}
+        self.textunput_experiment = {}
+        self.checkbox_experiment = {}
+        self.date_experiment = {}
+        self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
+        self.order_subject = []
+        self.order_experiment = []
 
         # lists containing the filter's widgets, for the function filter() to get their values:
         self.filter_bio_widgets = {}
@@ -70,7 +74,7 @@ class LabApp(App):
         the "Filter" and "Send an E-Mail" buttons are also created here (but their listener functions are for all filtering, including exp).
         """
         # create range filters:
-        for filter, text in self.range_filters.items():
+        for filter, text in self.range_subject.items():
             box = gui.HBox(width = 350, height = 50)
             fil_label = gui.Label(text,width = 300)
             fil_from = gui.TextInput(hint='from',height=18)
@@ -82,7 +86,7 @@ class LabApp(App):
             self.bio_widgets_for_display[filter] = box
 
         # create dropdown list filters:
-        for filter, values in self.dropdown_filters.items():
+        for filter, values in self.dropdown_subject.items():
             fil = gui.DropDown(height=20)
             for idx, val in enumerate(values):
                 fil.add_child(idx,gui.DropDownItem(val))
@@ -92,7 +96,7 @@ class LabApp(App):
             self.bio_widgets_for_display[filter] = box
 
         # create text input filters:
-        for filter, text in self.textinput_filters.items():
+        for filter, text in self.textinput_subject.items():
             fil = gui.TextInput(hint=text,height=18)
             box = gui.HBox(width = 350, height = 50)
             box.append(fil)
@@ -101,7 +105,7 @@ class LabApp(App):
 
 
         # create checkbox filters:
-        for filter, text in self.checkbox_filters.items():
+        for filter, text in self.checkbox_subject.items():
             fil = gui.CheckBoxLabel(text,height=18)
             box = gui.HBox(width = 350, height = 50)
             box.append(fil)
@@ -109,10 +113,8 @@ class LabApp(App):
             self.bio_widgets_for_display[filter] = box
 
         # position filters:
-        order_for_display = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
-
         bio_filters = gui.Table()
-        for idx, filter in enumerate(order_for_display):
+        for idx, filter in enumerate(self.order_filters):
             row = gui.TableRow()
             item = gui.TableItem()
             item.add_child(0,self.bio_widgets_for_display[filter])
@@ -134,7 +136,7 @@ class LabApp(App):
         item = gui.TableItem()
         item.add_child(0,buttons_box)
         row.add_child(0,item)
-        bio_filters.add_child(len(order_for_display)+1,row)
+        bio_filters.add_child(len(self.order_filters)+1,row)
         export_box = gui.HBox(width = 350, height= 50)
         export_button = gui.Button('Export to Excel', width = 140)
         export_button.set_on_click_listener(self.export_to_excel_listener)
@@ -146,7 +148,7 @@ class LabApp(App):
         item = gui.TableItem()
         item.add_child(0,export_box)
         row.add_child(0,item)
-        bio_filters.add_child(len(order_for_display)+2,row)
+        bio_filters.add_child(len(self.order_filters)+2,row)
 
         return bio_filters
 
@@ -220,7 +222,7 @@ class LabApp(App):
 
         # bio filters:
         # range filters:
-        for filter in self.range_filters.keys():
+        for filter in self.range_subject.keys():
             from_val = self.filter_bio_widgets[filter][0].get_value()
             to_val = self.filter_bio_widgets[filter][1].get_value()
             if from_val != '' :
@@ -233,19 +235,19 @@ class LabApp(App):
                     selected_filters[filter] = [0, int(to_val)]
 
         # drop down filters:
-        for filter, text in self.dropdown_filters.items():
+        for filter, text in self.dropdown_subject.items():
             val = self.filter_bio_widgets[filter].get_value()
             if (val != None) and (val != text[0]):
                 selected_filters[filter] = val
 
         # text input filters:
-        for filter in self.textinput_filters.keys():
+        for filter in self.textinput_subject.keys():
             val = self.filter_bio_widgets[filter].get_value()
             if val != '':
                 selected_filters[filter] = val
 
         # chackbox filters:
-        for filter in self.checkbox_filters.keys():
+        for filter in self.checkbox_subject.keys():
             val = self.filter_bio_widgets[filter].get_value()
             if val == True:
                 selected_filters[filter] = val
@@ -535,7 +537,7 @@ class LabApp(App):
         self.refresh_exp_lists()
         self.show_dialog(f'Imported from: {file}')
 
-    def refresh_exp_lists(self, *args): # todo!
+    def refresh_exp_lists(self, *args):
         self.exp_names = unique_experiments()
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []

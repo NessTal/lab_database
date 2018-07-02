@@ -4,9 +4,16 @@ from peewee import *
 from filt_switch import FiltSwitch
 
 db = SqliteDatabase('./subjects.db')
+
 subject_fields = ['first', 'last','sub_ID','year_of_birth','dominant_hand','mail','sub_notes',
                   'send_mails','reading_span','gender','hebrew_age','other_languages']
 experiment_fields = ['sub_code','exp_name','date','participated','exp_notes','exp_list']
+
+col_order_subjects = ['first', 'last','sub_ID','mail','year_of_birth','gender','hebrew_age','other_languages',
+                      'dominant_hand','reading_span','sub_notes','send_mails']
+col_order_experiment = ['exp_name','sub_code','exp_list','date','first', 'last','sub_ID','mail','year_of_birth','gender',
+                        'hebrew_age','other_languages','dominant_hand','reading_span','sub_notes','exp_notes',
+                        'participated','send_mails']
 
 
 class Subject(Model):
@@ -57,8 +64,6 @@ def get_table_subjects():
         for key,val in row.items():
             data_dict.setdefault(key, []).append(val)
     df = pd.DataFrame.from_dict(data_dict).drop(columns=['id'])
-    col_order_subjects = ['first', 'last','sub_ID','mail','year_of_birth','gender','hebrew_age','other_languages',
-                          'dominant_hand','reading_span','sub_notes','send_mails']
     df = df[col_order_subjects]
     return df
 
@@ -70,9 +75,6 @@ def get_table_experiment():
         for key,val in row.items():
             data_dict.setdefault(key, []).append(val)
     df = pd.DataFrame.from_dict(data_dict).drop(columns=['id'])
-    col_order_experiment = ['exp_name','sub_code','exp_list','date','first', 'last','sub_ID','mail','year_of_birth','gender',
-                            'hebrew_age','other_languages','dominant_hand','reading_span','sub_notes','exp_notes',
-                            'participated','send_mails']
     df = df[col_order_experiment]
     return df
 
