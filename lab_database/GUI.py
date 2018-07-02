@@ -427,7 +427,6 @@ class LabApp(App):
             subj_data = get_if_exists(search_value)
             # if the user does not exist, add the field we searched to the table so a new user could be created
             if type(subj_data) != pd.DataFrame:
-                print(subj_data)  # todo: delete this later
                 self.show_dialog('No subject found, you can add a new subject below')
                 self.info_dict[field].set_value(search_value) # todo: it doesn't work for full name
                 # todo: clear all fields (other then the searched field)
@@ -547,6 +546,6 @@ class LabApp(App):
         return create_widget
 
 
-start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=False)
+start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=True)
 
 # ssh -L 127.0.0.8081:127.0.0.1:8081 User@132.66.230.98
