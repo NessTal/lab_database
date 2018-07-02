@@ -1,0 +1,14 @@
+exp_name,sub_code,exp_list,date,first,last,sub_ID,mail,year_of_birth,gender,hebrew_age,other_languages,dominant_hand,reading_span,sub_notes,exp_notes,participated,send_mails
+exp1,1,A,01-01-01,A,a,1,Aa@mail.com,1991,Male,0,,Right,2.0,kdcnsjcn,ansjx,True,True
+exp1,2,B,01-01-01,B,b,2,Bb@mail.com,1992,Female,3,English,Laft,,,,True,True
+exp2,1,A,01-01-01,C,c,3,Cc@mail.com,1993,Male,0,,Right,4.0,aska,,True,False
+exp2,2,B,02-01-01,A,a,1,Aa@mail.com,1991,Male,0,,Right,2.0,kdcnsjcn,slkdsasml,True,True
+exp2,3,A,01-01-01,D,d,4,Dd@mail.com,1994,Female,0,,Laft,3.0,,asxa,False,True
+exp2,4,B,01-01-01,E,e,5,Ee@mail.com,1995,Male,3,Spanish,Right,,asx,,True,True
+exp3,1,A,02-01-01,C,c,3,Cc@mail.com,1993,Male,0,,Right,4.0,aska,amsal,True,False
+exp4,1,A,01-01-01,A,a,1,Aa@mail.com,1991,Male,0,,Right,2.0,kdcnsjcn,,True,True
+exp5,1,A,01-01-01,F,f,6,Ff@mail.com,1997,Female,0,,Laft,,,,False,False
+exp6,1,A,01-01-01,G,g,7,Gg@mail.com,1998,Male,6,English,Right,5.0,,,True,True
+exp7,1,A,01-01-01,H,h,8,Aa@mail.com,1991,Female,0,,Right,2.0,,,True,True
+exp8,1,A,01-01-01,H,h,8,Aa@mail.com,1991,Female,0,,Right,2.0,,,True,True
+exp9,1,A,01-01-01,H,h,8,Aa@mail.com,1991,Female,0,,Right,2.0,,,True,True

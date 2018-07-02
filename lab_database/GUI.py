@@ -547,4 +547,6 @@ class LabApp(App):
         return create_widget
 
 
-start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=True)
+start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=False)
+
+# ssh -L 127.0.0.8081:127.0.0.1:8081 User@132.66.230.98
