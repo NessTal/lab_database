@@ -146,49 +146,44 @@ def export_all_to_csv(*args):
 
 
 def filt(filt_dict, exp_list = 0):
-    if exp_list == 1: # If experiment list is requested, return a df that includes the fields specific for this experiment.
-        df = get_table_experiment()
-        df = df.loc[df['exp_name'] == filt_dict['exp_include'][0]]
-        for key, val in filt_dict.items():
-            df = FiltSwitch().filter_by_key(key, val, df)
-        ### todo: add exclude by experiment
+    exp = get_table_experiment()
+    sub = get_table_subjects()
 
-    else: # If not exp list, return a df only with subject fields.
-        exp = get_table_experiment()
-        df = get_table_subjects()
+    # Exclude based on parameters other than exclusion/inclusion of experiments.
+    for key, val in filt_dict.items():
+        sub = FiltSwitch().filter_by_key(key, val, sub)
 
-        # Exclude based on parameters other than exclusion/inclusion of experiments.
-        for key, val in filt_dict.items():
-            df = FiltSwitch().filter_by_key(key, val, df)
+    for subject in sub['sub_ID'].values:
+        sub_exp = exp.loc[exp['sub_ID'] == subject]
+        sub_exp = sub_exp['exp_name'].values
 
-        for subject in df['sub_ID'].values:
-            sub_exp = exp.loc[exp['sub_ID'] == subject]
-            sub_exp = sub_exp['exp_name'].values
+        # Exclude by experiments
+        if 'exp_exclude' in filt_dict:
+            for val in filt_dict['exp_exclude']:
+                if val in sub_exp:
+                    sub = sub.loc[sub['sub_ID'] != subject]
 
-            # Exclude by experiments
-            if 'exp_exclude' in filt_dict:
-                for val in filt_dict['exp_exclude']:
-                    if val in sub_exp:
-                        df = df.loc[df['sub_ID'] != subject]
-
+        if exp_list == 0:
             # Include by experiments
             if 'exp_include' in filt_dict:
                 for val in filt_dict['exp_include']:
                     if (val in sub_exp) == False:
-                        df = df.loc[df['sub_ID'] != subject]
-    return df
+                        sub = sub.loc[sub['sub_ID'] != subject]
+
+    if exp_list == 1: # If an experiment list was requested, return a df that includes the fields specific for this experiment.
+        exp = exp.loc[exp['exp_name'] == filt_dict['exp_include'][0]]
+        result = exp.loc[exp['sub_ID'].isin(sub['sub_ID'])]
+    else:
+        result = sub
+    return result
 
 
 def experiment_tomorrow_mails():
     df_exp = get_table_experiment()
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    df_exp.loc[df_exp['date'] == tomorrow]
-    emails = []
-    subs = get_table_subjects()
-    sub_id = subs['sub_ID']
-    for id in df_exp['sub_ID']:
-        ind = sub_id == id
-        emails.append(subs.loc[ind]['mail'].to_string(index=False))
+    df_exp = df_exp.loc[df_exp['date'] == tomorrow]
+    emails = df_exp['mail'].tolist()
+    print(emails)
     return emails
 
 def import_from_excel(file):
