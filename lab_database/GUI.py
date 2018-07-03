@@ -150,8 +150,8 @@ class LabApp(App):
         buttons_box_1.append(clear_button)
         buttons_box.append(buttons_box_1)
 
-        email_button = gui.Button('Send an E-Mail', width = 140)
-        email_button.set_on_click_listener(self.send_email)
+        email_button = gui.Button('Send E-Mails', width = 140)
+        email_button.set_on_click_listener(self.send_email_listener)
         buttons_box.append(email_button)
 
         export_box = gui.HBox(width = 350, height= 50)
@@ -307,9 +307,45 @@ class LabApp(App):
         self.filter_results.to_csv(file, index=False)
         self.show_dialog(f'Exported to: {file}')
 
-    def send_email(self,*args):
-        #exp_mail(self.filter_results,subject='',contents='')
+    def send_email_listener(self,*args):
+        self.mail_dialog = gui.GenericDialog(message='',width=400)
+        self.mail_dialog.style['margin-top'] = '30px'
+        self.mail_dialog.style['padding'] = '30px'
+        self.mail_dialog.empty()
+        box = gui.VBox()
+        mail_subject = gui.TextInput(hint= 'Subject')
+        mail_subject.style['padding-top'] = '3px'
+        mail_subject.style['padding-bottom'] = '3px'
+        mail_subject.style['margin-bottom'] = '15px'
+        mail_content = gui.TextInput(single_line= False, hint= 'Content', height=450)
+        mail_subject.style['padding-top'] = '3px'
+        mail_content.style['margin-bottom'] = '15px'
+        send_button = gui.Button('Send', width= 60)
+        send_button.set_on_click_listener(self.send_emails)
+        send_button.style['margin-left'] = '30px'
+        cancel_button = gui.Button('Cancel', width= 60)
+        cancel_button.set_on_click_listener(self.cancel_emails)
+        send_cancel_box = gui.HBox()
+        send_cancel_box.append(cancel_button)
+        send_cancel_box.append(send_button)
+        box.append(mail_subject)
+        box.append(mail_content)
+        box.append(send_cancel_box)
+        self.mail_widgets = [mail_subject,mail_content]
+        self.mail_dialog.append(box)
+        self.mail_dialog.show(self)
+
+    def send_emails(self,*args):
+        #exp_mail(self.filter_results['mail'].tolist(),subject=self.mail_widgets[0].get_value(),contents=self.mail_widgets[1].get_value())
+        # todo: show an error if now mails were selected
+        self.mail_dialog.hide()
         self.show_dialog('E-mails were sent!')
+        print(self.filter_results['mail'].tolist())
+        print(self.mail_widgets[0].get_value())
+        print(self.mail_widgets[1].get_value())
+
+    def cancel_emails(self,*args):
+        self.mail_dialog.hide()
 
     """
     Edit tab
