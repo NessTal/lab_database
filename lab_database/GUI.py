@@ -220,47 +220,56 @@ class LabApp(App):
         if selected_exp_no != []:
             selected_filters['exp_exclude'] = selected_exp_no
 
-        # bio filters:
-        # range filters:
-        for filter in self.range_subject.keys():
-            from_val = self.filter_bio_widgets[filter][0].get_value()
-            to_val = self.filter_bio_widgets[filter][1].get_value()
-            if from_val != '' :
-                if to_val != '' :
-                    selected_filters[filter] = [int(from_val), int(to_val)]
+        if exp_list == 1 and len(selected_exp_yes) != 1:
+            self.show_dialog("Please choose a single experiment to get the experiment's list.")
+            self.filter_table.empty()
+        else:
+            # bio filters:
+            # range filters:
+            for filter in self.range_subject.keys():
+                from_val = self.filter_bio_widgets[filter][0].get_value()
+                to_val = self.filter_bio_widgets[filter][1].get_value()
+                if from_val != '' :
+                    if to_val != '' :
+                        selected_filters[filter] = [int(from_val), int(to_val)]
+                    else:
+                        selected_filters[filter] = [int(from_val), 1000000]
                 else:
-                    selected_filters[filter] = [int(from_val), 1000000]
-            else:
-                if to_val != '' :
-                    selected_filters[filter] = [0, int(to_val)]
+                    if to_val != '' :
+                        selected_filters[filter] = [0, int(to_val)]
 
-        # drop down filters:
-        for filter, text in self.dropdown_subject.items():
-            val = self.filter_bio_widgets[filter].get_value()
-            if (val != None) and (val != text[0]):
-                selected_filters[filter] = val
+            # drop down filters:
+            for filter, text in self.dropdown_subject.items():
+                val = self.filter_bio_widgets[filter].get_value()
+                if (val != None) and (val != text[0]):
+                    selected_filters[filter] = val
 
-        # text input filters:
-        for filter in self.textinput_subject.keys():
-            val = self.filter_bio_widgets[filter].get_value()
-            if val != '':
-                selected_filters[filter] = val
+            # text input filters:
+            for filter in self.textinput_subject.keys():
+                val = self.filter_bio_widgets[filter].get_value()
+                if val != '':
+                    selected_filters[filter] = val
 
-        # chackbox filters:
-        for filter in self.checkbox_subject.keys():
-            val = self.filter_bio_widgets[filter].get_value()
-            if val == True:
-                selected_filters[filter] = val
+            # chackbox filters:
+            for filter in self.checkbox_subject.keys():
+                val = self.filter_bio_widgets[filter].get_value()
+                if val == True:
+                    selected_filters[filter] = val
 
-        # send selected filters (dict) to filt and receive a data frame with the filtered results:
-        print(selected_filters)
-        self.filter_results = filt(filt_dict = selected_filters, exp_list = exp_list)
-        results_list_of_tuples = []
-        results_list_of_tuples.append(tuple(self.filter_results.columns.values))
-        for idx, row in self.filter_results.iterrows():
-            results_list_of_tuples.append(tuple(row))
-        self.filter_table.empty()
-        self.filter_table.append_from_list(results_list_of_tuples,fill_title=True)
+            # send selected filters (dict) to filt and receive a data frame with the filtered results:
+            print(selected_filters)
+            self.filter_results = filt(filt_dict = selected_filters, exp_list = exp_list)
+            results_list_of_tuples = []
+            results_list_of_tuples.append(tuple(self.filter_results.columns.values))
+            for idx, row in self.filter_results.iterrows():
+                results_list_of_tuples.append(tuple(row))
+            self.filter_table.empty()
+            self.filter_table.append_from_list(results_list_of_tuples,fill_title=True)
+            for key,item in self.filter_table.get_child('0').children.items():
+                self.filter_table.get_child('0').get_child(key).style['padding-left'] = '5px'
+                self.filter_table.get_child('0').get_child(key).style['padding-right'] = '5px'
+                self.filter_table.get_child('0').get_child(key).style['padding-top'] = '3px'
+                self.filter_table.get_child('0').get_child(key).style['padding-bottom'] = '3px'
         return self.filter_results
 
     def export_to_excel_listener(self, *args):
@@ -269,7 +278,7 @@ class LabApp(App):
         self.filter_results.to_csv(file, index=False)
         self.show_dialog(f'Exported to: {file}')
 
-    def send_email(self):
+    def send_email(self,*args):
         #exp_mail(self.filter_results,subject='',contents='')
         self.show_dialog('E-mails were sent!')
 
@@ -517,8 +526,21 @@ class LabApp(App):
                 raise ValueError # for testing
 
     def show_dialog(self, message: str):
-        self.error_dialog = gui.GenericDialog(message=message, width='30%', height='15%')
+        self.error_dialog = gui.GenericDialog(message=message, width='470', height='150')
+        self.error_dialog.empty()
+        text = gui.Label(message)
+        text.style['text-align'] = 'center'
+        text.style['margin-top'] = '30px'
+        text.style['margin-bottom'] = '30px'
+        self.error_dialog.append(text)
+        ok = gui.Button('OK', width= 70)
+        ok.style['margin-left'] = '200px'
+        ok.set_on_click_listener(self.ok_listener)
+        self.error_dialog.append(ok)
         self.error_dialog.show(self)
+
+    def ok_listener(self,*args):
+        self.error_dialog.hide()
 
     def import_from_excel(self):
         import_box = gui.HBox(width = 300, height = 80)
