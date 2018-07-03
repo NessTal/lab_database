@@ -25,8 +25,6 @@ class LabApp(App):
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
         self.filter_export_file_name = []
-        self.filter_table = gui.TableWidget(0,0)
-        self.exp_filters_for_refresh = gui.HBox()
         self.bio_widgets_for_display = {}
 
         self.filter_results = pd.DataFrame()
@@ -45,33 +43,34 @@ class LabApp(App):
         calls for the three big containers and creates tabs
         """
         container = gui.TabBox()
-        container.add_tab(self.filters_widget(), 'Fillter', 'Fillter')
+        container.add_tab(self.filters_tab(), 'Fillter', 'Fillter')
         container.add_tab(self.edit_widget(), 'Add or Edit Subject', 'Add or Edit Subject')
-        container.add_tab(self.create_widget(), 'Add Fields', 'Add Fields')
+        container.add_tab(self.create_tab(), 'Add Fields', 'Add Fields')
         return container
 
     """
     Filters tab
     """
 
-    def filters_widget(self):
+    def filters_tab(self):
         """
-        creates the filters container by calling for its three parts (two that create filters and one that creates the table).
+        creates the filters tab which contains two part - filters and table (for the results).
         """
-        filters_widget = gui.VBox(width = '100%', height = '1000') # the entire tab
-        filters_box = gui.HBox(width = 800, height = 50)  # the upper part
-        self.exp_filters_for_refresh = gui.HBox()
-        self.exp_filters()
-        filters_box.append(self.exp_filters_for_refresh)
-        filters_box.append(self.bio_filters())
-        filters_widget.append(filters_box)
-        filters_widget.append(self.filter_table)
-        return filters_widget
+        filters_tab = gui.VBox(width = '100%') # the entire tab
+        self.filters_box = gui.HBox(width = 800)  # the upper part
+        self.filters_box.style['margin-top'] = '20px'
+        filters_tab.append(self.filters_box)
+        self.filter_table = gui.TableWidget(0,0)
+        self.filter_table.style['margin-bottom'] = '100px'
+        filters_tab.append(self.filter_table)
+        self.filters_box.append(self.exp_filters())
+        self.filters_box.append(self.subject_filters())
+        return filters_tab
 
-    def bio_filters(self):
+    def subject_filters(self):
         """
-        creates filters for the subject's biographic information.
-        the "Filter" and "Send an E-Mail" buttons are also created here (but their listener functions are for all filtering, including exp).
+        creates filters for the subject's information.
+        also calls for 'filters_tab_buttons' and appends the buttons box.
         """
         # create range filters:
         for filter, text in self.range_subject.items():
@@ -103,7 +102,6 @@ class LabApp(App):
             self.filter_bio_widgets[filter] = fil
             self.bio_widgets_for_display[filter] = box
 
-
         # create checkbox filters:
         for filter, text in self.checkbox_subject.items():
             fil = gui.CheckBoxLabel(text,height=18)
@@ -113,30 +111,49 @@ class LabApp(App):
             self.bio_widgets_for_display[filter] = box
 
         # position filters:
-        bio_filters = gui.Table()
+        subject_filters = gui.Table()
         for idx, filter in enumerate(self.order_filters):
             row = gui.TableRow()
             item = gui.TableItem()
             item.add_child(0,self.bio_widgets_for_display[filter])
             row.add_child(0,item)
-            bio_filters.add_child(idx,row)
+            subject_filters.add_child(idx,row)
 
-        # Buttons and listener:
-        buttons_box = gui.HBox(width = 350)
+        # add buttons:
+        row = gui.TableRow()
+        item = gui.TableItem()
+        item.add_child(0,self.filters_tab_buttons())
+        row.add_child(0,item)
+        subject_filters.add_child(len(self.order_filters)+1,row)
+
+        return subject_filters
+
+
+    def filters_tab_buttons(self):
+        """
+        create the buttons for the filters tab.
+        """
+        buttons_box = gui.VBox(width = 350)
+        buttons_box_1 = gui.HBox()
+        buttons_box_1.style['margin-top'] = '10px'
+        buttons_box_1.style['margin-bottom'] = '10px'
         filter_button = gui.Button('Filter', width = 70)
         filter_button.set_on_click_listener(self.filter_listener)
-        buttons_box.append(filter_button)
+        buttons_box_1.append(filter_button)
         exp_list_button = gui.Button('Experiment list', width = 120)
+        exp_list_button.style['margin-left'] = '10px'
+        exp_list_button.style['margin-right'] = '10px'
         exp_list_button.set_on_click_listener(self.exp_list_listener)
-        buttons_box.append(exp_list_button)
+        buttons_box_1.append(exp_list_button)
+        clear_button = gui.Button('Clear', width = 70)
+        clear_button.set_on_click_listener(self.clear_filters)
+        buttons_box_1.append(clear_button)
+        buttons_box.append(buttons_box_1)
+
         email_button = gui.Button('Send an E-Mail', width = 140)
         email_button.set_on_click_listener(self.send_email)
         buttons_box.append(email_button)
-        row = gui.TableRow()
-        item = gui.TableItem()
-        item.add_child(0,buttons_box)
-        row.add_child(0,item)
-        bio_filters.add_child(len(self.order_filters)+1,row)
+
         export_box = gui.HBox(width = 350, height= 50)
         export_button = gui.Button('Export to Excel', width = 140)
         export_button.set_on_click_listener(self.export_to_excel_listener)
@@ -144,19 +161,16 @@ class LabApp(App):
         export_box.append(export_button)
         export_box.append(export_file_name_input)
         self.filter_export_file_name = export_file_name_input
-        row = gui.TableRow()
-        item = gui.TableItem()
-        item.add_child(0,export_box)
-        row.add_child(0,item)
-        bio_filters.add_child(len(self.order_filters)+2,row)
+        buttons_box.append(export_box)
 
-        return bio_filters
+        return buttons_box
 
 
     def exp_filters(self):
         """
-        creates an "include" and "exclude" checkbox for each experiment.
+        creates a table with "include" and "exclude" checkboxes for each experiment.
         """
+        exp_filters = gui.HBox()
         for idx, exp in enumerate(self.exp_names):
             if (idx % 15) == 0: # starts an new table after each 15 experiments
                 exp_table = gui.Table()
@@ -190,13 +204,15 @@ class LabApp(App):
             self.filter_exp_yes_widgets.append(cb_yes)
             self.filter_exp_no_widgets.append(cb_no)
             if (idx % 15) == 0:
-                self.exp_filters_for_refresh.append(exp_table)
+                exp_filters.append(exp_table)
+        return exp_filters
+
 
     def filter_listener(self, *args):
         self.filter(exp_list = 0)
 
     def exp_list_listener(self, *args):
-        self.filter(exp_list = 1)           # todo: add a warning when more/less then one include experiment was selected.
+        self.filter(exp_list = 1)
 
     def filter(self, exp_list=0, *args):
         """
@@ -224,6 +240,7 @@ class LabApp(App):
             self.show_dialog("Please choose a single experiment to get the experiment's list.")
             self.filter_table.empty()
         else:
+
             # bio filters:
             # range filters:
             for filter in self.range_subject.keys():
@@ -260,7 +277,8 @@ class LabApp(App):
             print(selected_filters)
             self.filter_results = filt(filt_dict = selected_filters, exp_list = exp_list)
             results_list_of_tuples = []
-            results_list_of_tuples.append(tuple(self.filter_results.columns.values))
+            results_list_of_tuples.append(tuple(self.filter_results.columns.str.capitalize().str.replace('_',' ')))
+            self.filter_table.style['margin-top'] = '30px'
             for idx, row in self.filter_results.iterrows():
                 results_list_of_tuples.append(tuple(row))
             self.filter_table.empty()
@@ -271,6 +289,17 @@ class LabApp(App):
                 self.filter_table.get_child('0').get_child(key).style['padding-top'] = '3px'
                 self.filter_table.get_child('0').get_child(key).style['padding-bottom'] = '3px'
         return self.filter_results
+
+    def clear_filters(self,*args):
+        self.filters_box.empty()
+        self.filter_bio_widgets = {}
+        self.filter_exp_yes_widgets = []
+        self.filter_exp_no_widgets = []
+        self.filter_export_file_name = []
+        self.bio_widgets_for_display = {}
+        self.filters_box.append(self.exp_filters())
+        self.filters_box.append(self.subject_filters())
+
 
     def export_to_excel_listener(self, *args):
         file_name = self.filter_export_file_name.get_value()
@@ -563,16 +592,15 @@ class LabApp(App):
         self.exp_names = unique_experiments()
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
-        self.exp_filters_for_refresh.empty()
-        self.exp_filters()
+        self.clear_filters()
 
 
     """
     Create tab
     """
-    def create_widget(self): # to be added in the future
-        create_widget = gui.VBox(width = 500, height = 500)
-        return create_widget
+    def create_tab(self): # to be added in the future
+        create_tab = gui.VBox(width = 500, height = 500)
+        return create_tab
 
 
 start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=True)
