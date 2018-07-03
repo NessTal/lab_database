@@ -8,16 +8,23 @@ class FiltSwitch:
             'reading_span': self.__filt_range,
             'send_mails': self.__filt_other,
             'hebrew_age': self.__filt_range,
-            'other_languages': self.__filt_other
+            'other_languages': self.__filt_textinput
         }
-
-    def __filt_other(self, key, val, df):
-        return df.loc[df[key] == val]
 
     def __filt_range(self, key, val, df):
         df = df.loc[list(df[key] >= val[0])]
         df = df.loc[list(df[key] <= val[1])]
         return df
+
+    def __filt_textinput(selfself, key, val, df):
+        if val == 'None':
+            df = df.loc[df[key].isna()]
+        else:
+            df = df.loc[df[key] == val]
+        return df
+
+    def __filt_other(self, key, val, df):
+        return df.loc[df[key] == val]
 
 
     def filter_by_key(self, key, val, df):
