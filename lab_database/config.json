@@ -1,4 +1,10 @@
 {
     "gmail_username": "tmplabmail",
-    "reminder_time": 10
+    "gmail_password": "labmail123",
+    "reminder_time": 11,
+
+    "import_path":"../import/",
+    "export_path":"../exported files/",
+
+    "max_range_value": 1000000
 }

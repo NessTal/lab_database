@@ -1,7 +1,8 @@
 import remi.gui as gui
 from remi import start, App
-from back_end import *
-#from main import *
+#from back_end import *
+from main import *
+import multiprocessing
 
 class LabApp(App):
     def __init__(self, *args):
@@ -75,6 +76,8 @@ class LabApp(App):
         # create range filters:
         for filter, text in self.range_subject.items():
             box = gui.HBox(width = 350, height = 50)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
             fil_label = gui.Label(text,width = 300)
             fil_from = gui.TextInput(hint='from',height=18)
             fil_to = gui.TextInput(hint='to',height=18)
@@ -90,6 +93,8 @@ class LabApp(App):
             for idx, val in enumerate(values):
                 fil.add_child(idx,gui.DropDownItem(val))
             box = gui.HBox(width = 350, height = 50)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
             box.append(fil)
             self.filter_bio_widgets[filter] = fil
             self.bio_widgets_for_display[filter] = box
@@ -98,6 +103,8 @@ class LabApp(App):
         for filter, text in self.textinput_subject.items():
             fil = gui.TextInput(hint=text,height=18)
             box = gui.HBox(width = 350, height = 50)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
             box.append(fil)
             self.filter_bio_widgets[filter] = fil
             self.bio_widgets_for_display[filter] = box
@@ -106,6 +113,8 @@ class LabApp(App):
         for filter, text in self.checkbox_subject.items():
             fil = gui.CheckBoxLabel(text,height=18)
             box = gui.HBox(width = 350, height = 50)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
             box.append(fil)
             self.filter_bio_widgets[filter] = fil
             self.bio_widgets_for_display[filter] = box
@@ -134,6 +143,8 @@ class LabApp(App):
         create the buttons for the filters tab.
         """
         buttons_box = gui.VBox(width = 350)
+        buttons_box.style['padding-left'] = '10px'
+        buttons_box.style['padding-right'] = '10px'
         buttons_box_1 = gui.HBox()
         buttons_box_1.style['margin-top'] = '10px'
         buttons_box_1.style['margin-bottom'] = '10px'
@@ -172,8 +183,9 @@ class LabApp(App):
         """
         exp_filters = gui.HBox()
         for idx, exp in enumerate(self.exp_names):
-            if (idx % 15) == 0: # starts an new table after each 15 experiments
+            if (idx % 15) == 0: # starts an new table after each 15 experiments. todo: make all tables be of the same length (by adding empty rows)
                 exp_table = gui.Table()
+                exp_table.style['margin-right'] = '10px'
                 # creating the titles:
                 row = gui.TableRow()
                 item = gui.TableTitle()
@@ -250,7 +262,7 @@ class LabApp(App):
                     if to_val != '' :
                         selected_filters[filter] = [int(from_val), int(to_val)]
                     else:
-                        selected_filters[filter] = [int(from_val), 1000000]
+                        selected_filters[filter] = [int(from_val), max_range_value]
                 else:
                     if to_val != '' :
                         selected_filters[filter] = [0, int(to_val)]
@@ -303,41 +315,43 @@ class LabApp(App):
 
     def export_to_excel_listener(self, *args):
         file_name = self.filter_export_file_name.get_value()
-        file = '../exported files/'+file_name+'.csv'
+        file = export_path+file_name+'.csv'
         self.filter_results.to_csv(file, index=False)
         self.show_dialog(f'Exported to: {file}')
 
     def send_email_listener(self,*args):
-        self.mail_dialog = gui.GenericDialog(message='',width=400)
-        self.mail_dialog.style['margin-top'] = '30px'
-        self.mail_dialog.style['padding'] = '30px'
-        self.mail_dialog.empty()
-        box = gui.VBox()
-        mail_subject = gui.TextInput(hint= 'Subject')
-        mail_subject.style['padding-top'] = '3px'
-        mail_subject.style['padding-bottom'] = '3px'
-        mail_subject.style['margin-bottom'] = '15px'
-        mail_content = gui.TextInput(single_line= False, hint= 'Content', height=450)
-        mail_subject.style['padding-top'] = '3px'
-        mail_content.style['margin-bottom'] = '15px'
-        send_button = gui.Button('Send', width= 60)
-        send_button.set_on_click_listener(self.send_emails)
-        send_button.style['margin-left'] = '30px'
-        cancel_button = gui.Button('Cancel', width= 60)
-        cancel_button.set_on_click_listener(self.cancel_emails)
-        send_cancel_box = gui.HBox()
-        send_cancel_box.append(cancel_button)
-        send_cancel_box.append(send_button)
-        box.append(mail_subject)
-        box.append(mail_content)
-        box.append(send_cancel_box)
-        self.mail_widgets = [mail_subject,mail_content]
-        self.mail_dialog.append(box)
-        self.mail_dialog.show(self)
+        if self.filter_results.empty == True:
+            self.show_dialog('No recipients selected. Use the filter to select the relevant subjects.')
+        else:
+            self.mail_dialog = gui.GenericDialog(message='',width=400)
+            self.mail_dialog.style['margin-top'] = '30px'
+            self.mail_dialog.style['padding'] = '30px'
+            self.mail_dialog.empty()
+            box = gui.VBox()
+            mail_subject = gui.TextInput(hint= 'Subject')
+            mail_subject.style['padding-top'] = '3px'
+            mail_subject.style['padding-bottom'] = '3px'
+            mail_subject.style['margin-bottom'] = '15px'
+            mail_content = gui.TextInput(single_line= False, hint= 'Content', height=450)
+            mail_subject.style['padding-top'] = '3px'
+            mail_content.style['margin-bottom'] = '15px'
+            send_button = gui.Button('Send', width= 60)
+            send_button.set_on_click_listener(self.send_emails)
+            send_button.style['margin-left'] = '30px'
+            cancel_button = gui.Button('Cancel', width= 60)
+            cancel_button.set_on_click_listener(self.cancel_emails)
+            send_cancel_box = gui.HBox()
+            send_cancel_box.append(cancel_button)
+            send_cancel_box.append(send_button)
+            box.append(mail_subject)
+            box.append(mail_content)
+            box.append(send_cancel_box)
+            self.mail_widgets = [mail_subject,mail_content]
+            self.mail_dialog.append(box)
+            self.mail_dialog.show(self)
 
     def send_emails(self,*args):
-        #exp_mail(self.filter_results['mail'].tolist(),subject=self.mail_widgets[0].get_value(),contents=self.mail_widgets[1].get_value())
-        # todo: show an error if now mails were selected
+        exp_mail(self.filter_results['mail'].tolist(),subject=self.mail_widgets[0].get_value(),contents=self.mail_widgets[1].get_value())
         self.mail_dialog.hide()
         self.show_dialog('E-mails were sent!')
         print(self.filter_results['mail'].tolist())
@@ -619,7 +633,7 @@ class LabApp(App):
 
     def import_from_excel_listener(self,*args):
         file_name = self.import_file_name.get_value()
-        file = '../import/'+file_name+'.csv'
+        file = import_path+file_name+'.csv'
         import_from_excel(file)
         self.refresh_exp_lists()
         self.show_dialog(f'Imported from: {file}')
@@ -638,7 +652,22 @@ class LabApp(App):
         create_tab = gui.VBox(width = 500, height = 500)
         return create_tab
 
-
 start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=True)
 
-# ssh -L 127.0.0.8081:127.0.0.1:8081 User@132.66.230.98
+"""
+def start_gui():
+    start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=True)
+
+
+def start_scheduler():
+    scheduler = BlockingScheduler()
+    scheduler.add_job(mail_reminders, 'cron', hour=reminder_time)
+    scheduler.start()
+
+
+if __name__ == '__main__':
+    p1 = multiprocessing.Process(name='p1', target=start_gui)
+    p2 = multiprocessing.Process(name='p2', target=start_scheduler)
+    p1.start()
+    p2.start()
+"""

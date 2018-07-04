@@ -10,4 +10,5 @@ back_end:
 5. add to col_order_subject/experiment
 6. add to db
 
-*** if there is a range field with values higher then 1000000 - change default 'to' value if the filter function.
+*** if there is a range field with values higher then 1000000 - change max_range_value in the config file.
+
