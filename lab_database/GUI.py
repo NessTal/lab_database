@@ -2,6 +2,7 @@ import remi.gui as gui
 from remi import start, App
 #from back_end import *
 from main import *
+from apscheduler.schedulers.blocking import BlockingScheduler
 import multiprocessing
 
 class LabApp(App):

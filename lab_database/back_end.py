@@ -188,7 +188,7 @@ def experiment_tomorrow_mails():
     return emails
 
 def import_from_excel(file):
-    df = pd.read_csv(file)
+    df = pd.read_csv(file, encoding='hebrew')
     dict = df.to_dict(orient = 'list')
     #dict['date'] = [datetime.datetime.strptime(date, '%d-%m-%y').date() for date in dict['date']]
     row_num = 0
