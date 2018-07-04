@@ -181,6 +181,7 @@ def filt(filt_dict, exp_list = 0):
 def experiment_tomorrow_mails():
     df_exp = get_table_experiment()
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    tomorrow = tomorrow.strftime('%d-%m-%y')
     df_exp = df_exp.loc[df_exp['date'] == tomorrow]
     emails = df_exp['mail'].tolist()
     print(emails)
@@ -189,6 +190,7 @@ def experiment_tomorrow_mails():
 def import_from_excel(file):
     df = pd.read_csv(file)
     dict = df.to_dict(orient = 'list')
+    #dict['date'] = [datetime.datetime.strptime(date, '%d-%m-%y').date() for date in dict['date']]
     row_num = 0
     for row in dict['sub_ID']:
         row_dict = {}
