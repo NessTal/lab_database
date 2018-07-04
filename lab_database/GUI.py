@@ -652,9 +652,7 @@ class LabApp(App):
         create_tab = gui.VBox(width = 500, height = 500)
         return create_tab
 
-start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=True)
 
-"""
 def start_gui():
     start(LabApp, address='0.0.0.0', port=8081,multiple_instance=True,start_browser=True)
 
@@ -670,4 +668,3 @@ if __name__ == '__main__':
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
-"""
