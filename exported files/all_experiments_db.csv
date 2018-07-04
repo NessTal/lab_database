@@ -13,6 +13,6 @@ exp7,1,A,01-01-01,H,h,8,Aa@mail.com,1991,Female,0,,Right,2.0,,,True,True
 exp8,1,A,01-01-01,H,h,8,Aa@mail.com,1991,Female,0,,Right,2.0,,,True,True
 exp9,1,A,01-01-01,H,h,8,Aa@mail.com,1991,Female,0,,Right,2.0,,,True,True
 exp10,1,A,04-07-01,Mail,Check,1,tmplabmail@gmail.com,1991,Male,0,,Right,2.0,kdcnsjcn,ansjx,True,True
-exp11,1,B,05-07-18,ניסיון,עברית,9,tal.ness1@gmail.com,1991,Male,0,,Right,2.0,בייבוא מאקסל,אבגדה,True,True
-no_exp,,,,ניסיון,עברית,9,tal.ness1@gmail.com,1991,Male,0,,Right,2.0,בייבוא מאקסל,,,True
+exp11,1,B,05-07-18,ניסיון,עברית,9,XXX@mail.com,1991,Male,0,,Right,2.0,בייבוא מאקסל,אבגדה,True,True
+no_exp,,,,ניסיון,עברית,9,XXX@mail.com,1991,Male,0,,Right,2.0,בייבוא מאקסל,,,True
 exp11,1,B,05-07-18,X,x,10,tmplabmail@gmail.com,1991,Male,0,,Right,2.0,"!@#@/a;l,a",,True,True
