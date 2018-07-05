@@ -11,13 +11,21 @@ class LabApp(App):
         self.range_subject = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading Span'}
         self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
         self.textinput_subject = {'other_languages':'Other languages'}
-        self.checkbox_subject = {'send_mails':'Agreed to recieve emails'}
+        self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
+        self.textinput_search = {'sub_ID': 'ID',
+                                 'first': 'First Name',
+                                 'last': 'Last Name',
+                                 'mail': 'e-mail',
+                                 'other_languages': 'Other Languages',
+                                 'sub_notes': 'Comments'}
         self.date_subject = {}
         self.range_experiment = {}
-        self.dropdown_experiment = {}
-        self.textunput_experiment = {}
+        self.dropdown_experiment = {'exp_list': unique_experiments()}
+        self.textinput_experiment = {'sub_code': 'Subject Number',
+                                     'exp_list': 'List',
+                                     'exp_notes': 'Comments'}
         self.checkbox_experiment = {}
-        self.date_experiment = {}
+        self.date_experiment = {'date': 'Date'}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
         self.order_subject = []
         self.order_experiment = []
