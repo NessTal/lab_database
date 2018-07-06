@@ -13,13 +13,21 @@ class LabApp(App):
         self.range_subject = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading Span'}
         self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
         self.textinput_subject = {'other_languages':'Other languages'}
-        self.checkbox_subject = {'send_mails':'Agreed to recieve emails'}
+        self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
+        self.textinput_search = {'sub_ID': 'ID',
+                                 'first': 'First Name',
+                                 'last': 'Last Name',
+                                 'mail': 'e-mail',
+                                 'other_languages': 'Other Languages',
+                                 'sub_notes': 'Comments'}
         self.date_subject = {}
         self.range_experiment = {}
-        self.dropdown_experiment = {}
-        self.textinput_experiment = {}
+        self.dropdown_experiment = {'exp_list': unique_experiments()}
+        self.textinput_experiment = {'sub_code': 'Subject Number',
+                                     'exp_list': 'List',
+                                     'exp_notes': 'Comments'}
         self.checkbox_experiment = {}
-        self.date_experiment = {}
+        self.date_experiment = {'date': 'Date'}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
         self.order_subject = []
         self.order_experiment = []
@@ -38,6 +46,7 @@ class LabApp(App):
         # attributes for the Edit tab
         self.info_dict = dict()
         self.search_by = ['ID', 'e-mail', 'Full Name']
+        # todo: remove the two dicts below once the function is updated
         self.handedness = ['Right', 'Left']
         self.gender = ['Female', 'Male']
         self.search_widgets = dict()
@@ -375,7 +384,7 @@ class LabApp(App):
         window3_container.append(self.search_by_container())
         window3_container.append(self.participant_info())
         window3_container.append(self.import_from_excel())
-        return window3_container # edit_widget
+        return window3_container  # edit_widget
 
     def search_by_container(self):
         """create search by drop down, input and button"""
@@ -412,7 +421,6 @@ class LabApp(App):
         participant_table.add_child(str(id(row)), row)
 
         # Create and add the relevant rows to the table
-        # todo: add the new fields
         id_row = self.add_row('ID', 'input')
         participant_table.add_child(str(id(id_row)), id_row)
         first_name_row = self.add_row('First Name', 'input')
@@ -500,7 +508,7 @@ class LabApp(App):
         box = types_dict[box_type]()
         self.info_dict[label] = box  # add the widgets to a dict
         if box_type == 'spinbox':
-            box.set_value(0)
+            box.set_value('-1')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
         item.add_child(str(id(item)), box)
         row.add_child(str(id(item)), item)
         return row
@@ -594,7 +602,7 @@ class LabApp(App):
                           'exp_name': 'no_exp'}
             add_or_update(subject_info)
             self.refresh_exp_lists()
-            self.show_dialog('The parcitipant was updated')
+            self.show_dialog('The participant was updated')
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
