@@ -1,6 +1,7 @@
 import datetime
 import pandas as pd
-from peewee import *
+# from peewee import *
+from playhouse.migrate import *
 from filt_switch import FiltSwitch
 
 db = SqliteDatabase('./subjects.db')
@@ -29,6 +30,7 @@ class Subject(Model):
     gender = CharField(null=True)
     hebrew_age = IntegerField(null=True)
     other_languages = CharField(null=True)
+#    new_field = IntegerField(null=True) # todo: find a way to add via code!!!
 
     class Meta:
         database = db # This model uses the "subjects.db" database.
@@ -49,6 +51,21 @@ class Experiment(Model):
 
 db.connect()
 db.create_tables([Subject, Experiment])
+
+
+def add_new_fields_to_tables():
+    df = pd.read_csv('added_fields.csv')
+    for idx, row in df.iterrows():
+        field_name = row['field_name']
+        table_name = row['table_name']
+        if row['field_type'] == 'integer':
+            exec(table_name + '._meta.add_field(field_name,IntegerField(null=True))')
+        if row['field_type'] == 'boolean':
+            exec(table_name + '._meta.add_field(field_name,BooleanField(null=True))')
+        if row['field_type'] == 'date':
+            exec(table_name + '._meta.add_field(field_name,DateField(null=True))')
+        if row['field_type'] == 'text':
+            exec(table_name + '._meta.add_field(field_name,CharField(null=True))')
 
 
 def unique_experiments():
@@ -139,11 +156,6 @@ def add_or_update(dict):
             Experiment.create(**exp_dict).save()
     export_all_to_csv()
 
-def export_all_to_csv(*args):
-    get_table_subjects().to_csv('../exported files/all_subjects_db.csv', index=False)
-    get_table_experiment().to_csv('../exported files/all_experiments_db.csv', index=False)
-
-
 
 def filt(filt_dict, exp_list = 0):
     exp = get_table_experiment()
@@ -187,6 +199,12 @@ def experiment_tomorrow_mails():
     print(emails)
     return emails
 
+
+def export_all_to_csv(*args):
+    get_table_subjects().to_csv('../exported files/all_subjects_db.csv', index=False)
+    get_table_experiment().to_csv('../exported files/all_experiments_db.csv', index=False)
+
+
 def import_from_excel(file):
     df = pd.read_csv(file, encoding='hebrew')
     dict = df.to_dict(orient = 'list')
@@ -199,6 +217,20 @@ def import_from_excel(file):
                 row_dict[key] = list[row_num]
         add_or_update(row_dict)
         row_num += 1
+    export_all_to_csv()
+
+
+def add_new_field(table_name,field_name,field_type):
+    dict = {'integer': IntegerField(null=True), 'boolean': BooleanField(null=True), 'date': DateField(null=True), 'text': CharField(null=True)}
+    field = dict[field_type]
+
+    print(table_name)
+    print(field_name)
+    print(field_type)
+
+    migrator = SqliteMigrator(db)
+    migrate(migrator.add_column(table_name,field_name,field))
+
 
 db.close()
 

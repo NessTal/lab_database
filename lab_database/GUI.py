@@ -2,8 +2,10 @@ import remi.gui as gui
 from remi import start, App
 #from back_end import *
 from main import *
+from filt_switch import *
 from apscheduler.schedulers.blocking import BlockingScheduler
 import multiprocessing
+import csv
 
 class LabApp(App):
     def __init__(self, *args):
@@ -15,7 +17,7 @@ class LabApp(App):
         self.date_subject = {}
         self.range_experiment = {}
         self.dropdown_experiment = {}
-        self.textunput_experiment = {}
+        self.textinput_experiment = {}
         self.checkbox_experiment = {}
         self.date_experiment = {}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
@@ -28,7 +30,9 @@ class LabApp(App):
         self.filter_exp_no_widgets = []
         self.filter_export_file_name = []
         self.bio_widgets_for_display = {}
+        self.new_field_widgets = []
 
+        self.dialog = gui.GenericDialog(width='470', height='150')
         self.filter_results = pd.DataFrame()
 
         # attributes for the Edit tab
@@ -40,20 +44,21 @@ class LabApp(App):
 
         super(LabApp, self).__init__(*args)
 
+
     def main(self):
         """
         calls for the three big containers and creates tabs
         """
+        self.new_fields_to_dicts()
         container = gui.TabBox()
         container.add_tab(self.filters_tab(), 'Fillter', 'Fillter')
-        container.add_tab(self.edit_widget(), 'Add or Edit Subject', 'Add or Edit Subject')
-        container.add_tab(self.create_tab(), 'Add Fields', 'Add Fields')
+        container.add_tab(self.edit_widget(), 'Add or Edit Subjects', 'Add or Edit Subjects')
+        container.add_tab(self.new_field_tab(), 'Add New Fields', 'Add New Fields')
         return container
 
     """
     Filters tab
     """
-
     def filters_tab(self):
         """
         creates the filters tab which contains two part - filters and table (for the results).
@@ -301,7 +306,7 @@ class LabApp(App):
                 self.filter_table.get_child('0').get_child(key).style['padding-right'] = '5px'
                 self.filter_table.get_child('0').get_child(key).style['padding-top'] = '3px'
                 self.filter_table.get_child('0').get_child(key).style['padding-bottom'] = '3px'
-        return self.filter_results
+
 
     def clear_filters(self,*args):
         self.filters_box.empty()
@@ -324,10 +329,10 @@ class LabApp(App):
         if self.filter_results.empty == True:
             self.show_dialog('No recipients selected. Use the filter to select the relevant subjects.')
         else:
-            self.mail_dialog = gui.GenericDialog(message='',width=400)
-            self.mail_dialog.style['margin-top'] = '30px'
-            self.mail_dialog.style['padding'] = '30px'
-            self.mail_dialog.empty()
+            self.dialog = gui.GenericDialog(message='',width=400)
+            self.dialog.style['margin-top'] = '30px'
+            self.dialog.style['padding'] = '30px'
+            self.dialog.empty()
             box = gui.VBox()
             mail_subject = gui.TextInput(hint= 'Subject')
             mail_subject.style['padding-top'] = '3px'
@@ -340,7 +345,7 @@ class LabApp(App):
             send_button.set_on_click_listener(self.send_emails)
             send_button.style['margin-left'] = '30px'
             cancel_button = gui.Button('Cancel', width= 60)
-            cancel_button.set_on_click_listener(self.cancel_emails)
+            cancel_button.set_on_click_listener(self.cancel_listener)
             send_cancel_box = gui.HBox()
             send_cancel_box.append(cancel_button)
             send_cancel_box.append(send_button)
@@ -348,19 +353,17 @@ class LabApp(App):
             box.append(mail_content)
             box.append(send_cancel_box)
             self.mail_widgets = [mail_subject,mail_content]
-            self.mail_dialog.append(box)
-            self.mail_dialog.show(self)
+            self.dialog.append(box)
+            self.dialog.show(self)
 
     def send_emails(self,*args):
         exp_mail(self.filter_results['mail'].tolist(),subject=self.mail_widgets[0].get_value(),contents=self.mail_widgets[1].get_value())
-        self.mail_dialog.hide()
+        self.dialog.hide()
         self.show_dialog('E-mails were sent!')
         print(self.filter_results['mail'].tolist())
         print(self.mail_widgets[0].get_value())
         print(self.mail_widgets[1].get_value())
 
-    def cancel_emails(self,*args):
-        self.mail_dialog.hide()
 
     """
     Edit tab
@@ -605,22 +608,6 @@ class LabApp(App):
             else:
                 raise ValueError # for testing
 
-    def show_dialog(self, message: str):
-        self.error_dialog = gui.GenericDialog(message=message, width='470', height='150')
-        self.error_dialog.empty()
-        text = gui.Label(message)
-        text.style['text-align'] = 'center'
-        text.style['margin-top'] = '30px'
-        text.style['margin-bottom'] = '30px'
-        self.error_dialog.append(text)
-        ok = gui.Button('OK', width= 70)
-        ok.style['margin-left'] = '200px'
-        ok.set_on_click_listener(self.ok_listener)
-        self.error_dialog.append(ok)
-        self.error_dialog.show(self)
-
-    def ok_listener(self,*args):
-        self.error_dialog.hide()
 
     def import_from_excel(self):
         import_box = gui.HBox(width = 300, height = 80)
@@ -649,9 +636,181 @@ class LabApp(App):
     """
     Create tab
     """
-    def create_tab(self): # to be added in the future
-        create_tab = gui.VBox(width = 500, height = 500)
-        return create_tab
+    def new_field_tab(self):
+        """
+        creates the Add New fields tab.
+        """
+        new_field_tab = gui.VBox()
+        new_field_tab.style['padding-top'] = '20px'
+        new_field_tab.style['padding-bottom'] = '40px'
+        field_name_box = gui.HBox()
+        field_name_box.style['margin'] = '10px'
+        field_name = gui.TextInput(width=370)
+        self.new_field_widgets.append(field_name)
+        field_name_box.append(gui.Label('Field name:', width=130))
+        field_name_box.append(field_name)
+        new_field_tab.append(field_name_box)
+
+        to_which_table_box = gui.HBox()
+        to_which_table_box.style['margin'] = '10px'
+        to_which_table = gui.DropDown(width=370)
+        to_which_table.append(gui.DropDownItem('Select'))
+        to_which_table.append(gui.DropDownItem('a general "property" of a subject (e.g. reading span)'))
+        to_which_table.append(gui.DropDownItem('a value in a specific experiment (e.g. experimental list)'))
+        self.new_field_widgets.append(to_which_table)
+        to_which_table_box.append(gui.Label('A value would be:',width=130))
+        to_which_table_box.append(to_which_table)
+        new_field_tab.append(to_which_table_box)
+
+        field_type_box = gui.HBox()
+        field_type_box.style['margin'] = '10px'
+        field_type = gui.DropDown(width=370)
+        field_type.append(gui.DropDownItem('Select'))
+        field_type.append(gui.DropDownItem('Numerical, with range filtering'))
+        field_type.append(gui.DropDownItem('Text/number, with a fixed set of options (scroll list)'))
+        field_type.append(gui.DropDownItem('Boolean (checkbox - yes/no)'))
+        field_type.append(gui.DropDownItem('Date'))
+        field_type.append(gui.DropDownItem('Free text/number'))
+        self.new_field_widgets.append(field_type)
+        field_type_box.append(gui.Label('Field type:',width=130))
+        field_type_box.append(field_type)
+        new_field_tab.append(field_type_box)
+
+        add_field_button = gui.Button('Add field')
+        add_field_button.style['margin-top'] = '20px'
+        add_field_button.style['padding-right'] = '10px'
+        add_field_button.style['padding-left'] = '10px'
+        add_field_button.set_on_click_listener(self.add_field_listener)
+        new_field_tab.append(add_field_button)
+        # todo: show an error if any information is missing or if the field exists.
+        return new_field_tab
+
+    def add_field_listener(self,*args):
+        """
+        checks if an options set is needed (for dropdown fields).
+        """
+        if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)':
+            self.dialog.empty()
+            box = gui.VBox()
+            box.style['padding'] = '15px'
+            box.append(gui.Label('Please list all possible values, separated by a comma'))
+            options_set = gui.TextInput(hint='option 1, option 2, option 3, ...')
+            options_set.style['margin'] = '15px'
+            self.new_field_widgets.append(options_set)
+            box.append(options_set)
+            buttons_box = gui.HBox()
+            cancel_button = gui.Button('Cancel', width=60)
+            cancel_button.style['margin-right'] = '20px'
+            cancel_button.set_on_click_listener(self.cancel_listener)
+            buttons_box.append(cancel_button)
+            ok_button = gui.Button('OK', width=60)
+            ok_button.set_on_click_listener(self.add_field)
+            buttons_box.append(ok_button)
+            box.append(buttons_box)
+            self.dialog.append(box)
+            self.dialog.show(self)
+        else:
+            self.add_field()
+
+
+    def add_field(self,*args):
+        """
+        adds the new field to added_fields.csv and calls add_new_field (from back_end) to add the field to the DB.
+        """
+        row = []
+        for widget in self.new_field_widgets:
+            row.append(widget.get_value())
+
+        row[0] = pd.Series(row[0]).str.lower().str.replace(' ','_').values[0]
+
+        if row[1] == 'a value in a specific experiment (e.g. experimental list)':
+            row[1] = 'Experiment'
+        else:
+            row[1] = 'Subject'
+
+        if row[2] == 'Numerical, with range filtering':
+            row[2] = 'integer'
+        elif row[2] == 'Boolean (checkbox - yes/no)':
+            row[2] = 'boolean'
+        elif row[2] == 'Date':
+            row[2] = 'date'
+        else:
+            row[2] = 'text'
+
+        add_new_field(table_name=row[1],field_name=row[0],field_type=row[2])
+
+        with open('added_fields.csv', 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow(row)
+
+        self.show_dialog('The new field was added to the DB. A restart is needed!')
+        restart_gui() # todo: find a way to restart!
+
+    """
+    General functions
+    """
+    def show_dialog(self, message: str):
+        self.dialog.empty()
+        text = gui.Label(message)
+        text.style['text-align'] = 'center'
+        text.style['margin-top'] = '30px'
+        text.style['margin-bottom'] = '30px'
+        self.dialog.append(text)
+        ok = gui.Button('OK', width= 70)
+        ok.style['margin-left'] = '200px'
+        ok.set_on_click_listener(self.ok_listener)
+        self.dialog.append(ok)
+        self.dialog.show(self)
+
+    def cancel_listener(self,*args):
+        self.dialog.hide()
+        if len(self.new_field_widgets) > 3:
+            self.new_field_widgets = self.new_field_widgets[:3]
+
+    def ok_listener(self,*args):
+        self.dialog.hide()
+
+    def new_fields_to_dicts(self,*args):
+        add_new_fields_to_tables()
+
+        dict = {'Subject':{'integer':self.range_subject, 'boolean':self.checkbox_subject,
+                           'date':self.date_subject,'text':[self.dropdown_subject, self.textinput_subject]},
+                'Experiment':{'integer':self.range_experiment, 'boolean':self.checkbox_experiment,
+                              'date':self.date_experiment,'text':[self.dropdown_experiment, self.textinput_experiment]}}
+        df = pd.read_csv('added_fields.csv')
+        for idx, row in df.iterrows():
+            field_name = row['field_name']
+            field_name_for_display = row.str.capitalize().str.replace('_',' ')['field_name']
+            table_name = row['table_name']
+            field_type = row['field_type']
+
+            if field_type == 'text':
+                if type(row['options_set']) == str:
+                    options_set = row.str.replace(', ',',')['options_set']
+                    options_set = options_set.split(',')
+                    options_set = [field_name_for_display] + options_set
+                    dict[table_name][field_type][0][field_name] = options_set
+                    switch_dict[field_name] = 'other'
+                else:
+                    dict[table_name][field_type][1][field_name] = field_name_for_display
+                    switch_dict[field_name] = 'textinput'
+            else:
+                dict[table_name][field_type][field_name] = field_name_for_display
+                if field_type == 'integer':
+                    switch_dict[field_name] = 'range'
+                else:
+                    switch_dict[field_name] = 'other'
+
+            if table_name == 'Experiment':
+                self.order_experiment.append(field_name)
+                experiment_fields.append(field_name)
+                col_order_experiment.append(field_name)
+            else:
+                self.order_filters.append(field_name)
+                self.order_subject.append(field_name)
+                subject_fields.append(field_name)
+                col_order_subjects.append(field_name)
+                col_order_experiment.append(field_name)
 
 
 def start_gui():
@@ -662,6 +821,15 @@ def start_scheduler():
     scheduler = BlockingScheduler()
     scheduler.add_job(mail_reminders, 'cron', hour=reminder_time)
     scheduler.start()
+
+
+def restart_gui():
+    print('Please restart GUI now.')
+    #p1.terminate()
+    #p1.start()
+
+
+#start_gui()
 
 
 if __name__ == '__main__':
