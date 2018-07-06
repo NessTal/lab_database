@@ -42,6 +42,7 @@ class LabApp(App):
         # attributes for the Edit tab
         self.info_dict = dict()
         self.search_by = ['ID', 'e-mail', 'Full Name']
+        # todo: remove the two dicts below once the function is updated
         self.handedness = ['Right', 'Left']
         self.gender = ['Female', 'Male']
         self.search_widgets = dict()
@@ -380,7 +381,7 @@ class LabApp(App):
         window3_container.append(self.search_by_container())
         window3_container.append(self.participant_info())
         window3_container.append(self.import_from_excel())
-        return window3_container # edit_widget
+        return window3_container  # edit_widget
 
     def search_by_container(self):
         """create search by drop down, input and button"""
@@ -417,7 +418,6 @@ class LabApp(App):
         participant_table.add_child(str(id(row)), row)
 
         # Create and add the relevant rows to the table
-        # todo: add the new fields
         id_row = self.add_row('ID', 'input')
         participant_table.add_child(str(id(id_row)), id_row)
         first_name_row = self.add_row('First Name', 'input')
@@ -505,7 +505,7 @@ class LabApp(App):
         box = types_dict[box_type]()
         self.info_dict[label] = box  # add the widgets to a dict
         if box_type == 'spinbox':
-            box.set_value(0)
+            box.set_value('-1')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
         item.add_child(str(id(item)), box)
         row.add_child(str(id(item)), item)
         return row
@@ -599,7 +599,7 @@ class LabApp(App):
                           'exp_name': 'no_exp'}
             add_or_update(subject_info)
             self.refresh_exp_lists()
-            self.show_dialog('The parcitipant was updated')
+            self.show_dialog('The participant was updated')
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
