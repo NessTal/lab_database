@@ -354,7 +354,7 @@ class LabApp(App):
             send_button.set_on_click_listener(self.send_emails)
             send_button.style['margin-left'] = '30px'
             cancel_button = gui.Button('Cancel', width= 60)
-            cancel_button.set_on_click_listener(self.cancel_listener)
+            cancel_button.set_on_click_listener(self.ok_or_cancel_listener)
             send_cancel_box = gui.HBox()
             send_cancel_box.append(cancel_button)
             send_cancel_box.append(send_button)
@@ -690,69 +690,77 @@ class LabApp(App):
         add_field_button.style['padding-left'] = '10px'
         add_field_button.set_on_click_listener(self.add_field_listener)
         new_field_tab.append(add_field_button)
-        # todo: show an error if any information is missing or if the field exists.
         return new_field_tab
 
     def add_field_listener(self,*args):
         """
         checks if an options set is needed (for dropdown fields).
         """
-        if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)':
-            self.dialog.empty()
-            box = gui.VBox()
-            box.style['padding'] = '15px'
-            box.append(gui.Label('Please list all possible values, separated by a comma'))
-            options_set = gui.TextInput(hint='option 1, option 2, option 3, ...')
-            options_set.style['margin'] = '15px'
-            self.new_field_widgets.append(options_set)
-            box.append(options_set)
-            buttons_box = gui.HBox()
-            cancel_button = gui.Button('Cancel', width=60)
-            cancel_button.style['margin-right'] = '20px'
-            cancel_button.set_on_click_listener(self.cancel_listener)
-            buttons_box.append(cancel_button)
-            ok_button = gui.Button('OK', width=60)
-            ok_button.set_on_click_listener(self.add_field)
-            buttons_box.append(ok_button)
-            box.append(buttons_box)
-            self.dialog.append(box)
-            self.dialog.show(self)
+        if self.new_field_widgets[0].get_value() == '' or self.new_field_widgets[1].get_value() == None or self.new_field_widgets[2].get_value() == None:
+            self.show_dialog('Please fill out all the details.')
+        elif pd.Series(self.new_field_widgets[0].get_value()).str.lower().str.replace(' ','_').values[0] in tables.table_experiment.columns.values:
+            self.show_dialog("A field with this name alreade exists. Consider using the existing field (preferable!), or change the new field's name.")
         else:
-            self.add_field()
+            if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)':
+                self.dialog.empty()
+                box = gui.VBox()
+                box.style['padding'] = '15px'
+                box.append(gui.Label('Please list all possible values, separated by a comma'))
+                options_set = gui.TextInput(hint='option 1, option 2, option 3, ...')
+                options_set.style['margin'] = '15px'
+                self.new_field_widgets.append(options_set)
+                box.append(options_set)
+                buttons_box = gui.HBox()
+                cancel_button = gui.Button('Cancel', width=60)
+                cancel_button.style['margin-right'] = '20px'
+                cancel_button.set_on_click_listener(self.ok_or_cancel_listener)
+                buttons_box.append(cancel_button)
+                ok_button = gui.Button('OK', width=60)
+                ok_button.set_on_click_listener(self.add_field)
+                buttons_box.append(ok_button)
+                box.append(buttons_box)
+                self.dialog.append(box)
+                self.dialog.show(self)
+            else:
+                self.add_field()
 
 
     def add_field(self,*args):
         """
         adds the new field to added_fields.csv and calls add_new_field (from back_end) to add the field to the DB.
         """
-        row = []
-        for widget in self.new_field_widgets:
-            row.append(widget.get_value())
-
-        row[0] = pd.Series(row[0]).str.lower().str.replace(' ','_').values[0]
-
-        if row[1] == 'a value in a specific experiment (e.g. experimental list)':
-            row[1] = 'Experiment'
+        if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)' and self.new_field_widgets[3].get_value() == '':
+            self.dialog.hide()
+            self.show_dialog('No options list was provided. Please choose a different field type or provide an options list.')
         else:
-            row[1] = 'Subject'
+            row = []
+            for widget in self.new_field_widgets:
+                row.append(widget.get_value())
 
-        if row[2] == 'Numerical, with range filtering':
-            row[2] = 'integer'
-        elif row[2] == 'Boolean (checkbox - yes/no)':
-            row[2] = 'boolean'
-        elif row[2] == 'Date':
-            row[2] = 'date'
-        else:
-            row[2] = 'text'
+            row[0] = pd.Series(row[0]).str.lower().str.replace(' ','_').values[0]
 
-        add_new_field(table_name=row[1],field_name=row[0],field_type=row[2])
+            if row[1] == 'a value in a specific experiment (e.g. experimental list)':
+                row[1] = 'Experiment'
+            else:
+                row[1] = 'Subject'
 
-        with open('added_fields.csv', 'a') as f:
-            writer = csv.writer(f)
-            writer.writerow(row)
+            if row[2] == 'Numerical, with range filtering':
+                row[2] = 'integer'
+            elif row[2] == 'Boolean (checkbox - yes/no)':
+                row[2] = 'boolean'
+            elif row[2] == 'Date':
+                row[2] = 'date'
+            else:
+                row[2] = 'text'
 
-        self.show_dialog('The new field was added to the DB. A restart is needed!')
-        restart_gui() # todo: find a way to restart!
+            add_new_field(table_name=row[1],field_name=row[0],field_type=row[2])
+
+            with open('added_fields.csv', 'a') as f:
+                writer = csv.writer(f)
+                writer.writerow(row)
+
+            self.show_dialog('The new field was added to the DB. A restart is needed!')
+            restart_gui() # todo: find a way to restart!
 
     """
     General functions
@@ -766,17 +774,14 @@ class LabApp(App):
         self.dialog.append(text)
         ok = gui.Button('OK', width= 70)
         ok.style['margin-left'] = '200px'
-        ok.set_on_click_listener(self.ok_listener)
+        ok.set_on_click_listener(self.ok_or_cancel_listener)
         self.dialog.append(ok)
         self.dialog.show(self)
 
-    def cancel_listener(self,*args):
+    def ok_or_cancel_listener(self,*args):
         self.dialog.hide()
         if len(self.new_field_widgets) > 3:
             self.new_field_widgets = self.new_field_widgets[:3]
-
-    def ok_listener(self,*args):
-        self.dialog.hide()
 
     def new_fields_to_dicts(self,*args):
         add_new_fields_to_tables()

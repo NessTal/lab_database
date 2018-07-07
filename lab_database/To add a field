@@ -13,6 +13,6 @@ back_end:
 restart app
 
 
-
+*** date filters are currently not created.
 *** if there is a range field with values higher then 1000000 - change max_range_value in the config file.
 
