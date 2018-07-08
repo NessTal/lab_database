@@ -30,7 +30,8 @@ class LabApp(App):
         self.date_experiment = {'date': 'Date'}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
         self.order_subject = ['ID', 'First name', 'Last name', 'e-mail', 'Gender', 'Year of birth', 'Dominant hand',
-                              'Hebrew exposure age', 'Other languages', 'Reading span', 'Comments']
+                              'Hebrew exposure age', 'Other languages', 'Reading span','Agreed to receive emails',
+                              'Comments']
         self.order_experiment = []
 
         # lists containing the filter's widgets, for the function filter() to get their values:
@@ -374,7 +375,6 @@ class LabApp(App):
         print(self.mail_widgets[0].get_value())
         print(self.mail_widgets[1].get_value())
 
-
     """
     Edit tab
     """
@@ -398,6 +398,7 @@ class LabApp(App):
         self.search_input = gui.Input()
         self.search_widgets['search by value'] = self.search_input
         self.search_button = gui.Button('Search')
+
         # Append to container
         search_by_container.append(self.search_by_dd)
         search_by_container.append(self.search_input)
@@ -421,17 +422,14 @@ class LabApp(App):
         row.add_child(str(id(table_title)), table_title)
         participant_table.add_child(str(id(row)), row)
 
-        # Create and add the relevant rows to the table
-        # for key, value in self.textinput_search.items():
-        #     participant_row = self.add_row(value, 'input')
-        #     participant_table.add_child(str(id(participant_row)), participant_row)
-
         widgets_and_inputs = [
             (self.textinput_search, 'input'),
             (self.dropdown_subject, 'drop_down'),
-            (self.range_subject, 'spinbox')
+            (self.range_subject, 'spinbox'),
+            (self.date_subject, 'date'),
+            (self.checkbox_subject, 'checkbox')
         ]
-        #  todo: add checkbox and date
+        #  todo: add checkbox
         for widget in widgets_and_inputs:
             widget_dictionary = widget[0]
             widget_type = widget[1]
@@ -520,7 +518,8 @@ class LabApp(App):
         types_dict = {'input': gui.TextInput,
                       'date': gui.Date,
                       'spinbox': gui.SpinBox,
-                      'drop_down': gui.DropDown}  # todo: add checkbox
+                      'drop_down': gui.DropDown,
+                      'checkbox': gui.CheckBox}
         box = types_dict[box_type]()  # create a widget
         row_title = widget_dictionary[label]  # Extract the row title from the relevant dictionary
         if box_type == 'spinbox':
@@ -540,7 +539,7 @@ class LabApp(App):
         item.add_child(str(id(item)), label)
         row.add_child(str(id(item)), item)
         item = gui.TableItem()
-        box = self.info_dict[label]  # todo: fix labels
+        box = self.info_dict[label]
         item.add_child(str(id(item)), box)
         row.add_child(str(id(item)), item)
         return row
