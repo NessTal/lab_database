@@ -50,6 +50,7 @@ class LabApp(App):
         self.new_field_widgets = []
 
         self.dialog = gui.GenericDialog(width='470', height='150')
+        self.input_dialog = gui.InputDialog(message='Enter the name of the new experiment', width='470', height='150')
         self.filter_results = pd.DataFrame()
 
         # attributes for the Edit tab
@@ -490,6 +491,7 @@ class LabApp(App):
         info_container.append(experiment_table)
         info_container.append(self.update_info)
 
+        self.exp_info_dict['exp_name'].set_on_change_listener(self.new_exp_click)
         self.update_info.set_on_click_listener(self.update_subject_click)
         return info_container
 
@@ -557,55 +559,58 @@ class LabApp(App):
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
         subject_info = dict()
+        experiment_name = self.exp_info_dict['exp_name'].get_value()
+        # validate that there is an ID, and that it only contains numbers
         if self.info_dict['sub_ID'].get_value() == '':
             self.show_dialog('Please enter the ID')
         elif self.validate_int(self.info_dict['sub_ID'].get_value(), 'ID'):
+            # enter the fields' values to the output dictionary
             for label in self.info_dict:
                 subject_info[label] = self.info_dict[label].get_value()
-            subject_info['exp_name'] = 'no_exp'  # todo: this is temporary, delete later
-        # else:
-        #     if self.validate_int(self.info_dict['sub_ID'].get_value(), 'ID'):
-        #         sub_id = int(self.info_dict['ID'].get_value())
-        #     else:
-        #         sub_id = 0
-        #     first = self.info_dict['First Name'].get_value()
-        #     last = self.info_dict['Last Name'].get_value()
-        #     mail = self.info_dict['e-mail'].get_value()
-        #     gender = self.info_dict['Gender'].get_value()
-        #     # make sure this value is an integer. todo: turn this into a function
-        #     if self.validate_int(self.info_dict['Year of Birth'].get_value(), 'Year of Birth'):
-        #         year_of_birth = int(self.info_dict['Year of Birth'].get_value())
-        #     else:
-        #         year_of_birth = 0
-        #     dominant_hand = self.info_dict['Handedness'].get_value()
-        #     if self.validate_int(self.info_dict['Reading Span'].get_value(), 'Reading Span'):
-        #         reading_span = int(self.info_dict['Reading Span'].get_value())
-        #     else:
-        #         reading_span = 0
-        #     notes = self.info_dict['Comments'].get_value()
-        #     if self.validate_int(self.info_dict['Hebrew Age'].get_value(), 'Hebrew Age'):
-        #         hebrew_age = int(self.info_dict['Hebrew Age'].get_value())
-        #     else:
-        #         hebrew_age = 0
-        #     other_languages = self.info_dict['Other Languages'].get_value()
-        #
-        #     subject_info = {
-        #         'sub_ID': sub_id,
-        #         'first': first,
-        #         'last': last,
-        #         'mail': mail,
-        #         'gender': gender,
-        #         'year_of_birth': year_of_birth,
-        #         'dominant_hand': dominant_hand,
-        #         'reading_span': reading_span,
-        #         'notes': notes,
-        #         'hebrew_age': hebrew_age,
-        #         'other_languages': other_languages,
-        #         'exp_name': 'no_exp'
-        #     }
-            add_or_update(subject_info)
-            self.refresh_exp_lists()
-            self.show_dialog('The participant was updated')
+            if not experiment_name:
+                subject_info['exp_name'] = 'no_exp'
+            # make sure that the numeric fields only contain numbers
+            if self.validate_range_fields(self.range_subject, self.info_dict):
+                add_or_update(subject_info)
+                self.refresh_exp_lists()
+                self.show_dialog('The participant was updated')
+                # print('EXPERIMENT VALUE')
+                # print(type(self.info_dict['send_mails'].get_value()))
+
+    def validate_range_fields(self, range_dict: dict, info_dict: dict)->bool:
+        for label in range_dict:
+            row_title = self.row_titles_search[label]
+            if not self.validate_int(info_dict[label].get_value(), row_title):
+                return False
+        return True
+
+    def new_exp_click(self, *args):
+        if self.exp_info_dict['exp_name'].get_value() == 'Add New':
+            self.enter_new_exp()
+
+    def enter_new_exp(self):
+        self.dialog.empty()
+        text = gui.Label('Enter the name of the new experiment: ')
+        text.style['margin'] = '3%'
+        dialog_box = gui.VBox()
+        name_input = gui.Input()
+        dialog_box.append(text)
+        dialog_box.append(name_input)
+        ok = gui.Button('OK', width=70)
+        cancel = gui.Button('Cancel', width=70)
+        ok.style['margin-right'] = '2%'
+        cancel.style['margin-left'] = '2%'
+        cancel.set_on_click_listener(self.new_exp_cancel_listener)
+        buttons_box = gui.HBox()
+        buttons_box.append(ok)
+        buttons_box.append(cancel)
+        buttons_box.style['margin'] = '3%'
+        dialog_box.append(buttons_box)
+        self.dialog.append(dialog_box)
+        self.dialog.show(self)
+
+    def new_exp_cancel_listener(self, *args):
+        self.dialog.hide()
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
@@ -614,11 +619,10 @@ class LabApp(App):
             return True
         except ValueError:
             if not debug:
-                self.show_dialog(f'The field {field} can only contain numbers')
+                self.show_dialog(f'The field "{field}" can only contain numbers')
                 return False
             else:
                 raise ValueError # for testing
-
 
     def import_from_excel(self):
         import_box = gui.HBox(width = 300, height = 80)
@@ -642,7 +646,6 @@ class LabApp(App):
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
         self.clear_filters()
-
 
     """
     Add new fields tab
