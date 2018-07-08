@@ -612,6 +612,9 @@ class LabApp(App):
     def new_exp_cancel_listener(self, *args):
         self.dialog.hide()
 
+    def new_exp_ok_listener(self, *args):
+        pass
+
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
         try:
