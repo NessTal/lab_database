@@ -550,55 +550,59 @@ class LabApp(App):
 
     def add_subject(self, data):
         """add a subject's details"""
-        print(data['sub_ID'].values)
         # access the relevant widgets and set the values in the DataFrame
         for label in self.info_dict:
             self.info_dict[label].set_value(str(data[label].values[0]))
 
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
-        if self.info_dict['ID'].get_value() == '':
+        subject_info = dict()
+        if self.info_dict['sub_ID'].get_value() == '':
             self.show_dialog('Please enter the ID')
-        else:
-            if self.validate_int(self.info_dict['ID'].get_value(), 'ID'):
-                sub_id = int(self.info_dict['ID'].get_value())
-            else:
-                sub_id = 0
-            first = self.info_dict['First Name'].get_value()
-            last = self.info_dict['Last Name'].get_value()
-            mail = self.info_dict['e-mail'].get_value()
-            gender = self.info_dict['Gender'].get_value()
-            # make sure this value is an integer. todo: turn this into a function
-            if self.validate_int(self.info_dict['Year of Birth'].get_value(), 'Year of Birth'):
-                year_of_birth = int(self.info_dict['Year of Birth'].get_value())
-            else:
-                year_of_birth = 0
-            dominant_hand = self.info_dict['Handedness'].get_value()
-            if self.validate_int(self.info_dict['Reading Span'].get_value(), 'Reading Span'):
-                reading_span = int(self.info_dict['Reading Span'].get_value())
-            else:
-                reading_span = 0
-            notes = self.info_dict['Comments'].get_value()
-            if self.validate_int(self.info_dict['Hebrew Age'].get_value(), 'Hebrew Age'):
-                hebrew_age = int(self.info_dict['Hebrew Age'].get_value())
-            else:
-                hebrew_age = 0
-            other_languages = self.info_dict['Other Languages'].get_value()
-
-            subject_info = {
-                'sub_ID': sub_id,
-                'first': first,
-                'last': last,
-                'mail': mail,
-                'gender': gender,
-                'year_of_birth': year_of_birth,
-                'dominant_hand': dominant_hand,
-                'reading_span': reading_span,
-                'notes': notes,
-                'hebrew_age': hebrew_age,
-                'other_languages': other_languages,
-                'exp_name': 'no_exp'
-            }
+        elif self.validate_int(self.info_dict['sub_ID'].get_value(), 'ID'):
+            for label in self.info_dict:
+                subject_info[label] = self.info_dict[label].get_value()
+            subject_info['exp_name'] = 'no_exp'  # todo: this is temporary, delete later
+        # else:
+        #     if self.validate_int(self.info_dict['sub_ID'].get_value(), 'ID'):
+        #         sub_id = int(self.info_dict['ID'].get_value())
+        #     else:
+        #         sub_id = 0
+        #     first = self.info_dict['First Name'].get_value()
+        #     last = self.info_dict['Last Name'].get_value()
+        #     mail = self.info_dict['e-mail'].get_value()
+        #     gender = self.info_dict['Gender'].get_value()
+        #     # make sure this value is an integer. todo: turn this into a function
+        #     if self.validate_int(self.info_dict['Year of Birth'].get_value(), 'Year of Birth'):
+        #         year_of_birth = int(self.info_dict['Year of Birth'].get_value())
+        #     else:
+        #         year_of_birth = 0
+        #     dominant_hand = self.info_dict['Handedness'].get_value()
+        #     if self.validate_int(self.info_dict['Reading Span'].get_value(), 'Reading Span'):
+        #         reading_span = int(self.info_dict['Reading Span'].get_value())
+        #     else:
+        #         reading_span = 0
+        #     notes = self.info_dict['Comments'].get_value()
+        #     if self.validate_int(self.info_dict['Hebrew Age'].get_value(), 'Hebrew Age'):
+        #         hebrew_age = int(self.info_dict['Hebrew Age'].get_value())
+        #     else:
+        #         hebrew_age = 0
+        #     other_languages = self.info_dict['Other Languages'].get_value()
+        #
+        #     subject_info = {
+        #         'sub_ID': sub_id,
+        #         'first': first,
+        #         'last': last,
+        #         'mail': mail,
+        #         'gender': gender,
+        #         'year_of_birth': year_of_birth,
+        #         'dominant_hand': dominant_hand,
+        #         'reading_span': reading_span,
+        #         'notes': notes,
+        #         'hebrew_age': hebrew_age,
+        #         'other_languages': other_languages,
+        #         'exp_name': 'no_exp'
+        #     }
             add_or_update(subject_info)
             self.refresh_exp_lists()
             self.show_dialog('The participant was updated')
