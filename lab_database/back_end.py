@@ -1,6 +1,7 @@
 import datetime
 import pandas as pd
-from peewee import *
+# from peewee import *
+from playhouse.migrate import *
 from filt_switch import FiltSwitch
 
 db = SqliteDatabase('./subjects.db')
@@ -29,6 +30,7 @@ class Subject(Model):
     gender = CharField(null=True)
     hebrew_age = IntegerField(null=True)
     other_languages = CharField(null=True)
+#    new_field = IntegerField(null=True) # todo: find a way to add via code!!!
 
     class Meta:
         database = db # This model uses the "subjects.db" database.
@@ -49,6 +51,21 @@ class Experiment(Model):
 
 db.connect()
 db.create_tables([Subject, Experiment])
+
+
+def add_new_fields_to_tables():
+    df = pd.read_csv('added_fields.csv')
+    for idx, row in df.iterrows():
+        field_name = row['field_name']
+        table_name = row['table_name']
+        if row['field_type'] == 'integer':
+            exec(table_name + '._meta.add_field(field_name,IntegerField(null=True))')
+        if row['field_type'] == 'boolean':
+            exec(table_name + '._meta.add_field(field_name,BooleanField(null=True))')
+        if row['field_type'] == 'date':
+            exec(table_name + '._meta.add_field(field_name,DateField(null=True))')
+        if row['field_type'] == 'text':
+            exec(table_name + '._meta.add_field(field_name,CharField(null=True))')
 
 
 def unique_experiments():
@@ -76,8 +93,15 @@ def get_table_experiment():
             data_dict.setdefault(key, []).append(val)
     df = pd.DataFrame.from_dict(data_dict).drop(columns=['id'])
     df = df[col_order_experiment]
+    sub_exp_dict = {}
     return df
 
+class Tables:
+    def __init__(self):
+        self.table_subjects = get_table_subjects()
+        self.table_experiment = get_table_experiment()
+
+tables = Tables()
 
 def devide_dict(dict):
     exp_dict = {}
@@ -106,18 +130,18 @@ def get_if_exists(identifier, experiment = None):
             exp = Experiment.select().where((Experiment.subject == sub) & (Experiment.exp_name == experiment))
             if exp.exists():
                 exp = exp.get()
-                exp_table = get_table_experiment()
-                output = exp_table.loc[list(exp_table['sub_ID'] == sub.sub_ID)]
+                exp_table = tables.table_experiment
+                output = exp_table.loc[list(exp_table['sub_ID'] == sub.sub_ID)]  #####
                 output = output.loc[list(output['exp_name'] == exp.exp_name)]
         if type(output) != pd.DataFrame:
-            sub_table = get_table_subjects()
-            output = sub_table.loc[sub_table['sub_ID'] == sub.sub_ID]
+            sub_table = tables.table_subjects
+            output = sub_table.loc[sub_table['sub_ID'] == sub.sub_ID]  #####
     return output
 
 
 def add_or_update(dict):
     sub_dict,exp_dict = devide_dict(dict)
-    sub = Subject.select().where(Subject.sub_ID == sub_dict['sub_ID'])
+    sub = Subject.select().where(Subject.sub_ID == sub_dict['sub_ID'])  #####
     if sub.exists() == False:
         sub = Subject.create(**sub_dict)
         sub.save()
@@ -137,49 +161,46 @@ def add_or_update(dict):
         else:
             exp_dict['subject'] = sub
             Experiment.create(**exp_dict).save()
+    tables.table_subjects = get_table_subjects()
+    tables.table_experiment = get_table_experiment()
     export_all_to_csv()
-
-def export_all_to_csv(*args):
-    get_table_subjects().to_csv('../exported files/all_subjects_db.csv', index=False)
-    get_table_experiment().to_csv('../exported files/all_experiments_db.csv', index=False)
-
 
 
 def filt(filt_dict, exp_list = 0):
-    exp = get_table_experiment()
-    sub = get_table_subjects()
+    exp = tables.table_experiment
+    sub = tables.table_subjects
 
     # Exclude based on parameters other than exclusion/inclusion of experiments.
     for key, val in filt_dict.items():
         sub = FiltSwitch().filter_by_key(key, val, sub)
 
-    for subject in sub['sub_ID'].values:
-        sub_exp = exp.loc[exp['sub_ID'] == subject]
+    for subject in sub['sub_ID'].values:  #####
+        sub_exp = exp.loc[exp['sub_ID'] == subject]  #####
         sub_exp = sub_exp['exp_name'].values
 
         # Exclude by experiments
         if 'exp_exclude' in filt_dict:
             for val in filt_dict['exp_exclude']:
                 if val in sub_exp:
-                    sub = sub.loc[sub['sub_ID'] != subject]
+                    sub = sub.loc[sub['sub_ID'] != subject]  #####
 
         if exp_list == 0:
             # Include by experiments
             if 'exp_include' in filt_dict:
                 for val in filt_dict['exp_include']:
                     if (val in sub_exp) == False:
-                        sub = sub.loc[sub['sub_ID'] != subject]
+                        sub = sub.loc[sub['sub_ID'] != subject]  #####
 
-    if exp_list == 1: # If an experiment list was requested, return a df that includes the fields specific for this experiment.
+    if exp_list == 1:  # If an experiment list was requested, return a df that includes the fields specific for this experiment.
         exp = exp.loc[exp['exp_name'] == filt_dict['exp_include'][0]]
-        result = exp.loc[exp['sub_ID'].isin(sub['sub_ID'])]
+        result = exp.loc[exp['sub_ID'].isin(sub['sub_ID'])]  #####
     else:
         result = sub
     return result
 
 
 def experiment_tomorrow_mails():
-    df_exp = get_table_experiment()
+    df_exp = tables.table_experiment
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
     tomorrow = tomorrow.strftime('%d-%m-%y')
     df_exp = df_exp.loc[df_exp['date'] == tomorrow]
@@ -187,18 +208,40 @@ def experiment_tomorrow_mails():
     print(emails)
     return emails
 
+
+def export_all_to_csv(*args):
+    tables.table_subjects.to_csv('../exported files/all_subjects_db.csv', index=False)
+    tables.table_experiment.to_csv('../exported files/all_experiments_db.csv', index=False)
+
+
 def import_from_excel(file):
     df = pd.read_csv(file, encoding='hebrew')
     dict = df.to_dict(orient = 'list')
     #dict['date'] = [datetime.datetime.strptime(date, '%d-%m-%y').date() for date in dict['date']]
     row_num = 0
-    for row in dict['sub_ID']:
+    for row in dict['sub_ID']:  #####
         row_dict = {}
         for key, list in dict.items():
             if str(list[row_num]) != 'nan':
                 row_dict[key] = list[row_num]
         add_or_update(row_dict)
         row_num += 1
+    tables.table_subjects = get_table_subjects()
+    tables.table_experiment = get_table_experiment()
+    export_all_to_csv()
+
+
+def add_new_field(table_name,field_name,field_type):
+    dict = {'integer': IntegerField(null=True), 'boolean': BooleanField(null=True), 'date': DateField(null=True), 'text': CharField(null=True)}
+    field = dict[field_type]
+
+    print(table_name)
+    print(field_name)
+    print(field_type)
+
+    migrator = SqliteMigrator(db)
+    migrate(migrator.add_column(table_name,field_name,field))
+
 
 db.close()
 

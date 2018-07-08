@@ -4,11 +4,15 @@ GUI:
 3. add to order_subject/experiment
 
 filt_switch:
-4. add to self.switch_dict
+4. add to switch_dict
 
 back_end:
-5. add to col_order_subject/experiment
+5. add to col_order_subject/experiment (if subject then add to both)
 6. add to db
 
+restart app
+
+
+*** date filters are currently not created.
 *** if there is a range field with values higher then 1000000 - change max_range_value in the config file.
 
