@@ -432,7 +432,7 @@ class LabApp(App):
             (self.dropdown_subject, 'drop_down'),
             (self.range_subject, 'spinbox'),
             (self.date_subject, 'date'),
-            (self.checkbox_subject, 'checkbox'),
+            (self.checkbox_subject, 'checkbox')
         ]
         # create the widgets and add them to a dictionary
         for widget in widgets_and_inputs:
@@ -552,18 +552,8 @@ class LabApp(App):
         """add a subject's details"""
         print(data['sub_ID'].values)
         # access the relevant widgets and set the values in the DataFrame
-        self.info_dict['ID'].set_value(str(data['sub_ID'].values[0]))
-        self.info_dict['First Name'].set_value(data['first'].values[0])
-        self.info_dict['Last Name'].set_value(data['last'].values[0])
-        self.info_dict['e-mail'].set_value(data['mail'].values[0])
-        self.info_dict['Gender'].set_value(data['gender'].values[0])
-        self.info_dict['Year of Birth'].set_value(data['year_of_birth'].values[0])
-        self.info_dict['Handedness'].set_value(data['dominant_hand'].values[0])
-        self.info_dict['Reading Span'].set_value(int(data['reading_span'].values[0]))
-        self.info_dict['Comments'].set_value(data['subj_notes'].values[0])
-        self.info_dict['Hebrew Age'].set_value(int(data['hebrew_age'].values[0]))
-        self.info_dict['Other Languages'].set_value(data['other_languages'].values[0])
-        # todo: also add experiment fields
+        for label in self.info_dict:
+            self.info_dict[label].set_value(str(data[label].values[0]))
 
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
