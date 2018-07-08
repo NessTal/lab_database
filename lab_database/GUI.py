@@ -642,7 +642,7 @@ class LabApp(App):
 
 
     """
-    Create tab
+    Add new fields tab
     """
     def new_field_tab(self):
         """
@@ -759,8 +759,11 @@ class LabApp(App):
                 writer = csv.writer(f)
                 writer.writerow(row)
 
-            self.show_dialog('The new field was added to the DB. A restart is needed!')
-            restart_gui() # todo: find a way to restart!
+            self.new_fields_to_dicts()
+            self.clear_filters()
+            tables.table_subjects = get_table_subjects()
+            tables.table_experiment = get_table_experiment()
+            self.show_dialog('The new field was added to the DB.')
 
     """
     General functions
@@ -814,16 +817,17 @@ class LabApp(App):
                 else:
                     switch_dict[field_name] = 'other'
 
-            if table_name == 'Experiment':
-                self.order_experiment.append(field_name)
-                experiment_fields.append(field_name)
-                col_order_experiment.append(field_name)
-            else:
-                self.order_filters.append(field_name)
-                self.order_subject.append(field_name)
-                subject_fields.append(field_name)
-                col_order_subjects.append(field_name)
-                col_order_experiment.append(field_name)
+            if not field_name in col_order_experiment:
+                if table_name == 'Experiment':
+                    self.order_experiment.append(field_name)
+                    experiment_fields.append(field_name)
+                    col_order_experiment.append(field_name)
+                else:
+                    self.order_filters.append(field_name)
+                    self.order_subject.append(field_name)
+                    subject_fields.append(field_name)
+                    col_order_subjects.append(field_name)
+                    col_order_experiment.append(field_name)
 
 
 def start_gui():
@@ -836,17 +840,13 @@ def start_scheduler():
     scheduler.start()
 
 
-def restart_gui():
-    print('Please restart GUI now.')
-    #p1.terminate()
-    #p1.start()
 
+start_gui()
 
-#start_gui()
-
-
+"""
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
+"""

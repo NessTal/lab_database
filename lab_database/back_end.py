@@ -124,7 +124,9 @@ def get_if_exists(identifier, experiment = None):
             sub = Subject.select().where(Subject.mail == identifier)
         else:
             sub = Subject.select().where(Subject.sub_ID == identifier)
-    if sub.exists():
+    if sub.count() > 1:
+        output = 'Too many!'
+    elif sub.exists():
         sub = sub.get()
         if experiment != None:
             exp = Experiment.select().where((Experiment.subject == sub) & (Experiment.exp_name == experiment))
