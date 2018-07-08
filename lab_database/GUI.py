@@ -8,27 +8,27 @@ import multiprocessing
 class LabApp(App):
     def __init__(self, *args):
         self.exp_names = unique_experiments()
-        self.range_subject = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading Span'}
+        self.range_subject = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading span'}
         self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
         self.textinput_subject = {'other_languages':'Other languages'}
         self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
         self.textinput_search = {'sub_ID': 'ID',
-                                 'first': 'First Name',
-                                 'last': 'Last Name',
+                                 'first': 'First name',
+                                 'last': 'Last name',
                                  'mail': 'e-mail',
-                                 'other_languages': 'Other Languages',
+                                 'other_languages': 'Other languages',
                                  'sub_notes': 'Comments'}
         self.date_subject = dict()
         self.range_experiment = dict()
-        self.dropdown_experiment = {'exp_list': unique_experiments()}
-        self.textinput_experiment = {'sub_code': 'Subject Number',
+        self.dropdown_experiment = {'experiments': ['Experiments'] + self.exp_names}
+        self.textinput_experiment = {'sub_code': 'Subject number',
                                      'exp_list': 'List',
                                      'exp_notes': 'Comments'}
         self.checkbox_experiment = dict()
         self.date_experiment = {'date': 'Date'}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
-        self.order_subject = ['sub_ID', 'first', 'last', 'mail', 'gender', 'year_of_birth', 'dominant_hand',
-                              'hebrew_age', 'other_languages', 'reading_span', 'sub_notes']
+        self.order_subject = ['ID', 'First name', 'Last name', 'e-mail', 'Gender', 'Year of birth', 'Dominant hand',
+                              'Hebrew exposure age', 'Other languages', 'Reading span', 'Comments']
         self.order_experiment = []
 
         # lists containing the filter's widgets, for the function filter() to get their values:
@@ -419,13 +419,26 @@ class LabApp(App):
         participant_table.add_child(str(id(row)), row)
 
         # Create and add the relevant rows to the table
-        for key, value in self.textinput_search.items():
-            participant_row = self.add_row(value, 'input')
-            participant_table.add_child(str(id(participant_row)), participant_row)
+        # for key, value in self.textinput_search.items():
+        #     participant_row = self.add_row(value, 'input')
+        #     participant_table.add_child(str(id(participant_row)), participant_row)
 
+        widgets_and_inputs = [
+            (self.textinput_search, 'input'),
+            (self.dropdown_subject, 'drop_down'),
+            (self.range_subject, 'spinbox')
+        ]
         #  todo: add checkbox and date
-        for widget_dictionary in [self.textinput_search, self.dropdown_subject, self.range_subject]:
-            pass
+        for widget in widgets_and_inputs:
+            widget_dictionary = widget[0]
+            widget_type = widget[1]
+            for label in widget_dictionary:
+                self.add_search_widget(label, widget_type, widget_dictionary)
+
+        for row_title in self.order_subject:
+            row = self.add_row(row_title)
+            participant_table.add_child(str(id(row)), row)
+
         # id_row = self.add_row('ID', 'input')
         # participant_table.add_child(str(id(id_row)), id_row)
         # first_name_row = self.add_row('First Name', 'input')
@@ -469,17 +482,18 @@ class LabApp(App):
         row.add_child(str(id(table_title)), table_title)
         experiment_table.add_child(str(id(row)), row)
 
-        # create and add rows for the experiments table
-        experiment_row = self.add_row('Experiment', 'drop_down')
-        experiment_table.add_child(str(id(experiment_row)), experiment_row)
-        date_row = self.add_row('Date', 'date')
-        experiment_table.add_child(str(id(date_row)), date_row)
-        subject_number_row = self.add_row('Subject Number', 'input')
-        experiment_table.add_child(str(id(subject_number_row)), subject_number_row)
-        # exp_comments_row = self.add_row('Comments', 'input')
-        # experiment_table.add_child(str(id(exp_comments_row)), exp_comments_row)
-        list_row = self.add_row('List', 'input')
-        experiment_table.add_child(str(id(list_row)), list_row)
+        # todo: add experiment rows
+        # # create and add rows for the experiments table
+        # experiment_row = self.add_row('Experiment', 'drop_down')
+        # experiment_table.add_child(str(id(experiment_row)), experiment_row)
+        # date_row = self.add_row('Date', 'date')
+        # experiment_table.add_child(str(id(date_row)), date_row)
+        # subject_number_row = self.add_row('Subject Number', 'input')
+        # experiment_table.add_child(str(id(subject_number_row)), subject_number_row)
+        # # exp_comments_row = self.add_row('Comments', 'input')
+        # # experiment_table.add_child(str(id(exp_comments_row)), exp_comments_row)
+        # list_row = self.add_row('List', 'input')
+        # experiment_table.add_child(str(id(list_row)), list_row)
 
         # Create labels
         participant_label = gui.Label('Participant')
@@ -516,22 +530,14 @@ class LabApp(App):
         print('#####')
         print(self.info_dict)
 
-    # todo: delete this function once the new functions are done
-    def add_row(self, label, box_type):
+    def add_row(self, label):
         """create a row with a table and box type"""
-        types_dict = {'input': gui.TextInput,
-                      'date': gui.Date,
-                      'spinbox': gui.SpinBox,
-                      'drop_down': gui.DropDown}
         row = gui.TableRow()
         item = gui.TableItem()
         item.add_child(str(id(item)), label)
         row.add_child(str(id(item)), item)
         item = gui.TableItem()
-        box = types_dict[box_type]()
-        self.info_dict[label] = box  # add the widgets to a dict
-        if box_type == 'spinbox':
-            box.set_value('-1')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
+        box = self.info_dict[label]  # todo: fix labels
         item.add_child(str(id(item)), box)
         row.add_child(str(id(item)), item)
         return row
