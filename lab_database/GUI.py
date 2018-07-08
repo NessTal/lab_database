@@ -27,7 +27,8 @@ class LabApp(App):
         self.checkbox_experiment = dict()
         self.date_experiment = {'date': 'Date'}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
-        self.order_subject = []
+        self.order_subject = ['sub_ID', 'first', 'last', 'mail', 'gender', 'year_of_birth', 'dominant_hand',
+                              'hebrew_age', 'other_languages', 'reading_span', 'sub_notes']
         self.order_experiment = []
 
         # lists containing the filter's widgets, for the function filter() to get their values:
@@ -421,7 +422,10 @@ class LabApp(App):
         for key, value in self.textinput_search.items():
             participant_row = self.add_row(value, 'input')
             participant_table.add_child(str(id(participant_row)), participant_row)
-            self.add_search_widget(key, 'input')
+
+        #  todo: add checkbox and date
+        for widget_dictionary in [self.textinput_search, self.dropdown_subject, self.range_subject]:
+            pass
         # id_row = self.add_row('ID', 'input')
         # participant_table.add_child(str(id(id_row)), id_row)
         # first_name_row = self.add_row('First Name', 'input')
@@ -494,23 +498,20 @@ class LabApp(App):
         self.update_info.set_on_click_listener(self.update_subject_click)
         return info_container
 
-    def add_search_widget(self, label, box_type):
+    def add_search_widget(self, label, box_type, widget_dictionary):
         """create a widget for the participants table"""
         types_dict = {'input': gui.TextInput,
                       'date': gui.Date,
                       'spinbox': gui.SpinBox,
                       'drop_down': gui.DropDown}  # todo: add checkbox
         box = types_dict[box_type]()  # create a widget
-        row_title = {
-            'input': self.textinput_search.get(label),
-            'date': self.date_subject.get(label),
-            'spinbox': self.range_subject.get(label),
-            'drop_down': self.dropdown_subject.get(label)  # todo: add checkbox
-        }[box_type]  # Extract the row title from the relevant dictionary
+        row_title = widget_dictionary[label]  # Extract the row title from the relevant dictionary
         if box_type == 'spinbox':
             box.set_value('-1')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
         elif box_type == 'drop_down':
             row_title = row_title[0]
+            for idx, item in enumerate(self.dropdown_subject[label]):
+                box.add_child(idx + 1, gui.DropDownItem(item))
         self.info_dict[row_title] = box  # Store the widget in a dictionary
         print('#####')
         print(self.info_dict)
