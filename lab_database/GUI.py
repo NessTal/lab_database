@@ -32,7 +32,7 @@ class LabApp(App):
         self.order_subject = ['ID', 'First name', 'Last name', 'e-mail', 'Gender', 'Year of birth', 'Dominant hand',
                               'Hebrew exposure age', 'Other languages', 'Reading span','Agreed to receive emails',
                               'Comments']
-        self.order_experiment = []
+        self.order_experiment = ['Experiments', 'Participated', 'Subject number', 'Date', 'List', 'Comments']
 
         # lists containing the filter's widgets, for the function filter() to get their values:
         self.filter_bio_widgets = {}
@@ -427,7 +427,7 @@ class LabApp(App):
             (self.dropdown_subject, 'drop_down'),
             (self.range_subject, 'spinbox'),
             (self.date_subject, 'date'),
-            (self.checkbox_subject, 'checkbox')
+            (self.checkbox_subject, 'checkbox'),
         ]
         # create the widgets and add them to a dictionary
         for widget in widgets_and_inputs:
@@ -451,6 +451,25 @@ class LabApp(App):
         table_title.add_child(str(id(table_title)), 'Info')
         row.add_child(str(id(table_title)), table_title)
         experiment_table.add_child(str(id(row)), row)
+
+        exp_widgets_and_inputs = [
+            (self.textinput_experiment, 'input'),
+            (self.dropdown_experiment, 'drop_down'),
+            (self.range_experiment, 'spinbox'),
+            (self.date_experiment, 'date'),
+            (self.checkbox_experiment, 'checkbox')
+        ]
+        # create the widgets and add them to a dictionary
+        for widget in exp_widgets_and_inputs:
+            widget_dictionary = widget[0]
+            widget_type = widget[1]
+            for label in widget_dictionary:
+                self.add_search_widget(label, widget_type, widget_dictionary)
+
+        # add the participants' table rows
+        for row_title in self.order_experiment:
+            row = self.add_row(row_title)
+            experiment_table.add_child(str(id(row)), row)
 
         # todo: add experiment rows
         # # create and add rows for the experiments table
@@ -495,14 +514,12 @@ class LabApp(App):
             box.set_value('-1')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
         elif box_type == 'drop_down':
             row_title = row_title[0]
-            for idx, item in enumerate(self.dropdown_subject[label]):
+            for idx, item in enumerate(widget_dictionary[label]):
                 box.add_child(idx + 1, gui.DropDownItem(item))
         self.info_dict[row_title] = box  # Store the widget in a dictionary
-        print('#####')
-        print(self.info_dict)
 
     def add_row(self, label):
-        """create a row with a table and box type"""
+        """create a row containing a label and a widget"""
         row = gui.TableRow()
         item = gui.TableItem()
         item.add_child(str(id(item)), label)
