@@ -22,11 +22,11 @@ class LabApp(App):
                                  'sub_notes': 'Comments'}
         self.date_subject = dict()
         self.range_experiment = dict()
-        self.dropdown_experiment = {'experiments': ['Experiments'] + self.exp_names}
+        self.dropdown_experiment = {'exp_name': ['Experiments'] + self.exp_names}
         self.textinput_experiment = {'sub_code': 'Subject number',
                                      'exp_list': 'List',
                                      'exp_notes': 'Comments'}
-        self.checkbox_experiment = dict()
+        self.checkbox_experiment = {'participated': 'Participated'}
         self.date_experiment = {'date': 'Date'}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
         self.order_subject = ['ID', 'First name', 'Last name', 'e-mail', 'Gender', 'Year of birth', 'Dominant hand',
