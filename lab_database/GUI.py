@@ -505,12 +505,12 @@ class LabApp(App):
             'input': self.textinput_search.get(label),
             'date': self.date_subject.get(label),
             'spinbox': self.range_subject.get(label),
-            'drop_down': self.dropdown_subject.get(label)  # todo: add checkbox and fix dropdown
+            'drop_down': self.dropdown_subject.get(label)  # todo: add checkbox
         }[box_type]  # Extract the row title from the relevant dictionary
         if box_type == 'spinbox':
             box.set_value('-1')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
         elif box_type == 'drop_down':
-            pass
+            row_title = row_title[0]
         self.info_dict[row_title] = box  # Store the widget in a dictionary
         print('#####')
         print(self.info_dict)
