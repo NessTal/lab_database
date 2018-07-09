@@ -50,7 +50,6 @@ class LabApp(App):
         self.new_field_widgets = []
 
         self.dialog = gui.GenericDialog(width='470', height='150')
-        self.input_dialog = gui.InputDialog(message='Enter the name of the new experiment', width='470', height='150')
         self.filter_results = pd.DataFrame()
 
         # attributes for the Edit tab
@@ -68,7 +67,7 @@ class LabApp(App):
         """
         self.new_fields_to_dicts()
         container = gui.TabBox()
-        container.add_tab(self.filters_tab(), 'Fillter', 'Fillter')
+        container.add_tab(self.filters_tab(), 'Filter', 'Filter')
         container.add_tab(self.edit_widget(), 'Add or Edit Subjects', 'Add or Edit Subjects')
         container.add_tab(self.new_field_tab(), 'Add New Fields', 'Add New Fields')
         return container
@@ -302,7 +301,7 @@ class LabApp(App):
                 if val != '':
                     selected_filters[filter] = val
 
-            # chackbox filters:
+            # checkbox filters:
             for filter in self.checkbox_subject.keys():
                 val = self.filter_bio_widgets[filter].get_value()
                 if val == True:
@@ -771,6 +770,7 @@ class LabApp(App):
 
             self.new_fields_to_dicts()
             self.clear_filters()
+            # todo: clear Add or edit tab (only tables)
             self.show_dialog('The new field was added to the DB.')
 
     """
@@ -816,6 +816,8 @@ class LabApp(App):
                 else:
                     dict_to_dicts[table_name][field_type][1][field_name] = field_name_for_display
                     switch_dict[field_name] = 'textinput'
+                    if table_name == 'Subject':
+                        self.textinput_search[field_name] = field_name_for_display
             else:
                 dict_to_dicts[table_name][field_type][field_name] = field_name_for_display
                 if field_type == 'integer':
@@ -827,8 +829,9 @@ class LabApp(App):
                 self.order_experiment.append(field_name)
 
             else:
-                self.order_filters.append(field_name)
-                self.order_subject.append(field_name)
+                self.order_filters.insert(-1, field_name)
+                self.order_subject.insert(-1, field_name)
+            self.row_titles_search[field_name] = field_name_for_display
 
 
 def start_gui():
@@ -842,7 +845,7 @@ def start_scheduler():
 
 
 
-start_gui()
+#start_gui()
 
 
 if __name__ == '__main__':
