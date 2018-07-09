@@ -598,6 +598,7 @@ class LabApp(App):
         text.style['margin'] = '3%'
         dialog_box = gui.VBox()
         name_input = gui.Input()
+        self.search_widgets['new_experiment_name'] = name_input
         dialog_box.append(text)
         dialog_box.append(name_input)
         ok = gui.Button('OK', width=70)
@@ -605,6 +606,7 @@ class LabApp(App):
         ok.style['margin-right'] = '2%'
         cancel.style['margin-left'] = '2%'
         cancel.set_on_click_listener(self.new_exp_cancel_listener)
+        ok.set_on_click_listener(self.new_exp_ok_listener)
         buttons_box = gui.HBox()
         buttons_box.append(ok)
         buttons_box.append(cancel)
@@ -614,10 +616,19 @@ class LabApp(App):
         self.dialog.show(self)
 
     def new_exp_cancel_listener(self, *args):
+        """Closes the dialog if the user clicks on 'Cancel'"""
+        self.exp_info_dict['exp_name'].set_value('Experiments')
         self.dialog.hide()
 
     def new_exp_ok_listener(self, *args):
-        pass
+        """Enters the name of a new experiment"""
+        new_experiment_name = self.search_widgets['new_experiment_name'].get_value()
+        # if the user did not enter any name, act as 'Cancel'
+        if new_experiment_name == '':
+            self.exp_info_dict['exp_name'].set_value('Experiments')
+            self.dialog.hide()
+            # else, if the experiment exists, alert the user and set the value accordingly
+            # else add the experiment to the drop down widget and set the value accordingly [alert the user?]
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
