@@ -22,17 +22,24 @@ class LabApp(App):
                                  'sub_notes': 'Comments'}
         self.date_subject = dict()
         self.range_experiment = dict()
-        self.dropdown_experiment = {'experiments': ['Experiments'] + self.exp_names}
+        self.dropdown_experiment = {'exp_name': ['Experiments', 'Add New'] + self.exp_names}
         self.textinput_experiment = {'sub_code': 'Subject number',
                                      'exp_list': 'List',
                                      'exp_notes': 'Comments'}
-        self.checkbox_experiment = dict()
+        self.checkbox_experiment = {'participated': 'Participated'}
         self.date_experiment = {'date': 'Date'}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
-        self.order_subject = ['ID', 'First name', 'Last name', 'e-mail', 'Gender', 'Year of birth', 'Dominant hand',
-                              'Hebrew exposure age', 'Other languages', 'Reading span','Agreed to receive emails',
-                              'Comments']
-        self.order_experiment = []
+        self.order_subject = ['sub_ID', 'first', 'last', 'mail', 'gender', 'year_of_birth', 'dominant_hand',
+                              'hebrew_age', 'other_languages', 'reading_span','send_mails',
+                              'sub_notes']
+        self.order_experiment = ['exp_name', 'participated', 'sub_code', 'date', 'exp_list', 'exp_notes']
+        self.row_titles_search = {'first': 'First name', 'last': 'Last name', 'sub_ID': 'ID',
+                                  'year_of_birth': 'Year of birth', 'dominant_hand': 'Dominant hand', 'mail': 'e-mail',
+                                  'sub_notes': 'Comments', 'send_mails': 'Agreed to receive emails',
+                                  'reading_span': 'Reading span', 'gender': 'Gender',
+                                  'hebrew_age': 'Hebrew exposure age', 'other_languages': 'Other languages',
+                                  'sub_code': 'Subject number', 'exp_name': 'Experiment', 'date': 'Date',
+                                  'participated': 'Participated', 'exp_notes': 'Comments', 'exp_list': 'List'}
 
         # lists containing the filter's widgets, for the function filter() to get their values:
         self.filter_bio_widgets = {}
@@ -43,14 +50,13 @@ class LabApp(App):
         self.new_field_widgets = []
 
         self.dialog = gui.GenericDialog(width='470', height='150')
+        self.input_dialog = gui.InputDialog(message='Enter the name of the new experiment', width='470', height='150')
         self.filter_results = pd.DataFrame()
 
         # attributes for the Edit tab
         self.info_dict = dict()
         self.search_by = ['ID', 'e-mail', 'Full Name']
-        # todo: remove the two dicts below once the function is updated
-        self.handedness = ['Right', 'Left']
-        self.gender = ['Female', 'Male']
+        self.exp_info_dict = dict()
         self.search_widgets = dict()
 
         super(LabApp, self).__init__(*args)
@@ -429,48 +435,17 @@ class LabApp(App):
             (self.date_subject, 'date'),
             (self.checkbox_subject, 'checkbox')
         ]
-        #  todo: add checkbox
+        # create the widgets and add them to a dictionary
         for widget in widgets_and_inputs:
             widget_dictionary = widget[0]
             widget_type = widget[1]
             for label in widget_dictionary:
-                self.add_search_widget(label, widget_type, widget_dictionary)
+                self.add_search_widget(label, widget_type, widget_dictionary, self.info_dict)
 
+        # add the participants' table rows
         for row_title in self.order_subject:
-            row = self.add_row(row_title)
+            row = self.add_row(row_title, self.info_dict)
             participant_table.add_child(str(id(row)), row)
-
-        # id_row = self.add_row('ID', 'input')
-        # participant_table.add_child(str(id(id_row)), id_row)
-        # first_name_row = self.add_row('First Name', 'input')
-        # participant_table.add_child(str(id(first_name_row)), first_name_row)
-        # last_name_row = self.add_row('Last Name', 'input')
-        # participant_table.add_child(str(id(last_name_row)), last_name_row)
-        # email_row = self.add_row('e-mail', 'input')
-        # participant_table.add_child(str(id(email_row)), email_row)
-        # gender_row = self.add_row('Gender', 'drop_down')
-        # participant_table.add_child(str(id(gender_row)), gender_row)
-        # year_of_birth_row = self.add_row('Year of Birth', 'spinbox')
-        # participant_table.add_child(str(id(year_of_birth_row)), year_of_birth_row)
-        # handedness_row = self.add_row('Handedness', 'drop_down')
-        # participant_table.add_child(str(id(handedness_row)), handedness_row)
-        # hebrew_age_row = self.add_row('Hebrew Age', 'spinbox')
-        # participant_table.add_child(str(id(hebrew_age_row)), hebrew_age_row)
-        # other_languages_row = self.add_row('Other Languages', 'input')
-        # participant_table.add_child(str(id(other_languages_row)), other_languages_row)
-        # reading_span_row = self.add_row('Reading Span', 'spinbox')
-        # participant_table.add_child(str(id(reading_span_row)), reading_span_row)
-        # comments_row = self.add_row('Comments', 'input')
-        # participant_table.add_child(str(id(comments_row)), comments_row)
-
-        # add handedness options
-        # self.info_dict['Handedness'].add_child(0, gui.DropDownItem('Handedness'))
-        # for idx, exp in enumerate(self.handedness):
-        #     self.info_dict['Handedness'].add_child(idx + 1, gui.DropDownItem(exp))
-        # # add gender options
-        # self.info_dict['Gender'].add_child(0, gui.DropDownItem('Gender'))
-        # for idx, exp in enumerate(self.gender):
-        #     self.info_dict['Gender'].add_child(idx + 1, gui.DropDownItem(exp))
 
         # create experiment details table and add titles
         experiment_table = gui.Table()
@@ -483,18 +458,24 @@ class LabApp(App):
         row.add_child(str(id(table_title)), table_title)
         experiment_table.add_child(str(id(row)), row)
 
-        # todo: add experiment rows
-        # # create and add rows for the experiments table
-        # experiment_row = self.add_row('Experiment', 'drop_down')
-        # experiment_table.add_child(str(id(experiment_row)), experiment_row)
-        # date_row = self.add_row('Date', 'date')
-        # experiment_table.add_child(str(id(date_row)), date_row)
-        # subject_number_row = self.add_row('Subject Number', 'input')
-        # experiment_table.add_child(str(id(subject_number_row)), subject_number_row)
-        # # exp_comments_row = self.add_row('Comments', 'input')
-        # # experiment_table.add_child(str(id(exp_comments_row)), exp_comments_row)
-        # list_row = self.add_row('List', 'input')
-        # experiment_table.add_child(str(id(list_row)), list_row)
+        exp_widgets_and_inputs = [
+            (self.textinput_experiment, 'input'),
+            (self.dropdown_experiment, 'drop_down'),
+            (self.range_experiment, 'spinbox'),
+            (self.date_experiment, 'date'),
+            (self.checkbox_experiment, 'checkbox')
+        ]
+        # create the widgets and add them to a dictionary
+        for widget in exp_widgets_and_inputs:
+            widget_dictionary = widget[0]
+            widget_type = widget[1]
+            for label in widget_dictionary:
+                self.add_search_widget(label, widget_type, widget_dictionary, self.exp_info_dict)
+
+        # add the experiments table rows
+        for row_title in self.order_experiment:
+            row = self.add_row(row_title, self.exp_info_dict)
+            experiment_table.add_child(str(id(row)), row)
 
         # Create labels
         participant_label = gui.Label('Participant')
@@ -510,10 +491,11 @@ class LabApp(App):
         info_container.append(experiment_table)
         info_container.append(self.update_info)
 
+        self.exp_info_dict['exp_name'].set_on_change_listener(self.new_exp_click)
         self.update_info.set_on_click_listener(self.update_subject_click)
         return info_container
 
-    def add_search_widget(self, label, box_type, widget_dictionary):
+    def add_search_widget(self, label, box_type, widget_dictionary, output_dictionary):
         """create a widget for the participants table"""
         types_dict = {'input': gui.TextInput,
                       'date': gui.Date,
@@ -521,25 +503,22 @@ class LabApp(App):
                       'drop_down': gui.DropDown,
                       'checkbox': gui.CheckBox}
         box = types_dict[box_type]()  # create a widget
-        row_title = widget_dictionary[label]  # Extract the row title from the relevant dictionary
         if box_type == 'spinbox':
             box.set_value('-1')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
         elif box_type == 'drop_down':
-            row_title = row_title[0]
-            for idx, item in enumerate(self.dropdown_subject[label]):
+            for idx, item in enumerate(widget_dictionary[label]):
                 box.add_child(idx + 1, gui.DropDownItem(item))
-        self.info_dict[row_title] = box  # Store the widget in a dictionary
-        print('#####')
-        print(self.info_dict)
+        output_dictionary[label] = box  # Store the widget in a dictionary
 
-    def add_row(self, label):
-        """create a row with a table and box type"""
+    def add_row(self, label, widget_dictionary):
+        """create a row containing a label and a widget"""
+        row_title = self.row_titles_search[label]
         row = gui.TableRow()
         item = gui.TableItem()
-        item.add_child(str(id(item)), label)
+        item.add_child(str(id(item)), row_title)
         row.add_child(str(id(item)), item)
         item = gui.TableItem()
-        box = self.info_dict[label]
+        box = widget_dictionary[label]
         item.add_child(str(id(item)), box)
         row.add_child(str(id(item)), item)
         return row
@@ -561,79 +540,80 @@ class LabApp(App):
         else:
             if field == 'ID':
                 search_value = int(search_value)
-            # todo: add experiment parameter to allow for editing a row in the Experiment db
             subj_data = get_if_exists(search_value)
             # if the user does not exist, add the field we searched to the table so a new user could be created
             if type(subj_data) != pd.DataFrame:
                 self.show_dialog('No subject found, you can add a new subject below')
-                self.info_dict[field].set_value(str(search_value)) # todo: it doesn't work for full name
-                # todo: clear all fields (other then the searched field)
+                self.info_dict[field].set_value(str(search_value))  # todo: it doesn't work for full name
+                # todo: clear all fields (other than the searched field)
             # else, add the subject's fields to the table
             else:
                 self.add_subject(subj_data)
 
     def add_subject(self, data):
         """add a subject's details"""
-        print(data['sub_ID'].values)
         # access the relevant widgets and set the values in the DataFrame
-        self.info_dict['ID'].set_value(str(data['sub_ID'].values[0]))
-        self.info_dict['First Name'].set_value(data['first'].values[0])
-        self.info_dict['Last Name'].set_value(data['last'].values[0])
-        self.info_dict['e-mail'].set_value(data['mail'].values[0])
-        self.info_dict['Gender'].set_value(data['gender'].values[0])
-        self.info_dict['Year of Birth'].set_value(data['year_of_birth'].values[0])
-        self.info_dict['Handedness'].set_value(data['dominant_hand'].values[0])
-        self.info_dict['Reading Span'].set_value(int(data['reading_span'].values[0]))
-        self.info_dict['Comments'].set_value(data['sunj_notes'].values[0])
-        self.info_dict['Hebrew Age'].set_value(int(data['hebrew_age'].values[0]))
-        self.info_dict['Other Languages'].set_value(data['other_languages'].values[0])
-        # todo: also add experiment fields
+        for label in self.info_dict:
+            self.info_dict[label].set_value(str(data[label].values[0]))
 
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
-        if self.info_dict['ID'].get_value() == '':
+        subject_info = dict()
+        experiment_name = self.exp_info_dict['exp_name'].get_value()
+        # validate that there is an ID, and that it only contains numbers
+        if self.info_dict['sub_ID'].get_value() == '':
             self.show_dialog('Please enter the ID')
-        else:
-            if self.validate_int(self.info_dict['ID'].get_value(), 'ID'):
-                sub_id = int(self.info_dict['ID'].get_value())
-            else:
-                sub_id = 0
-            first = self.info_dict['First Name'].get_value()
-            last = self.info_dict['Last Name'].get_value()
-            mail = self.info_dict['e-mail'].get_value()
-            gender = self.info_dict['Gender'].get_value()
-            # make sure this value is an integer. todo: turn this into a function
-            if self.validate_int(self.info_dict['Year of Birth'].get_value(), 'Year of Birth'):
-                year_of_birth = int(self.info_dict['Year of Birth'].get_value())
-            else:
-                year_of_birth = 0
-            dominant_hand = self.info_dict['Handedness'].get_value()
-            if self.validate_int(self.info_dict['Reading Span'].get_value(), 'Reading Span'):
-                reading_span = int(self.info_dict['Reading Span'].get_value())
-            else:
-                reading_span = 0
-            notes = self.info_dict['Comments'].get_value()
-            if self.validate_int(self.info_dict['Hebrew Age'].get_value(), 'Hebrew Age'):
-                hebrew_age = int(self.info_dict['Hebrew Age'].get_value())
-            else:
-                hebrew_age = 0
-            other_languages = self.info_dict['Other Languages'].get_value()
+        elif self.validate_int(self.info_dict['sub_ID'].get_value(), 'ID'):
+            # enter the fields' values to the output dictionary
+            for label in self.info_dict:
+                subject_info[label] = self.info_dict[label].get_value()
+            if not experiment_name:
+                subject_info['exp_name'] = 'no_exp'
+            # make sure that the numeric fields only contain numbers
+            if self.validate_range_fields(self.range_subject, self.info_dict):
+                add_or_update(subject_info)
+                self.refresh_exp_lists()
+                self.show_dialog('The participant was updated')
+                # print('EXPERIMENT VALUE')
+                # print(type(self.info_dict['send_mails'].get_value()))
 
-            subject_info={'sub_ID': sub_id,
-                          'first': first,
-                          'last': last,
-                          'mail': mail,
-                          'gender': gender,
-                          'year_of_birth': year_of_birth,
-                          'dominant_hand': dominant_hand,
-                          'reading_span': reading_span,
-                          'notes': notes,
-                          'hebrew_age': hebrew_age,
-                          'other_languages': other_languages,
-                          'exp_name': 'no_exp'}
-            add_or_update(subject_info)
-            self.refresh_exp_lists()
-            self.show_dialog('The participant was updated')
+    def validate_range_fields(self, range_dict: dict, info_dict: dict)->bool:
+        for label in range_dict:
+            row_title = self.row_titles_search[label]
+            if not self.validate_int(info_dict[label].get_value(), row_title):
+                return False
+        return True
+
+    def new_exp_click(self, *args):
+        if self.exp_info_dict['exp_name'].get_value() == 'Add New':
+            self.enter_new_exp()
+
+    def enter_new_exp(self):
+        self.dialog.empty()
+        text = gui.Label('Enter the name of the new experiment: ')
+        text.style['margin'] = '3%'
+        dialog_box = gui.VBox()
+        name_input = gui.Input()
+        dialog_box.append(text)
+        dialog_box.append(name_input)
+        ok = gui.Button('OK', width=70)
+        cancel = gui.Button('Cancel', width=70)
+        ok.style['margin-right'] = '2%'
+        cancel.style['margin-left'] = '2%'
+        cancel.set_on_click_listener(self.new_exp_cancel_listener)
+        buttons_box = gui.HBox()
+        buttons_box.append(ok)
+        buttons_box.append(cancel)
+        buttons_box.style['margin'] = '3%'
+        dialog_box.append(buttons_box)
+        self.dialog.append(dialog_box)
+        self.dialog.show(self)
+
+    def new_exp_cancel_listener(self, *args):
+        self.dialog.hide()
+
+    def new_exp_ok_listener(self, *args):
+        pass
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
@@ -642,11 +622,10 @@ class LabApp(App):
             return True
         except ValueError:
             if not debug:
-                self.show_dialog(f'The field {field} can only contain numbers')
+                self.show_dialog(f'The field "{field}" can only contain numbers')
                 return False
             else:
                 raise ValueError # for testing
-
 
     def import_from_excel(self):
         import_box = gui.HBox(width = 300, height = 80)
@@ -670,7 +649,6 @@ class LabApp(App):
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
         self.clear_filters()
-
 
     """
     Add new fields tab
