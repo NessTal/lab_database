@@ -566,27 +566,32 @@ class LabApp(App):
         elif self.validate_int(self.info_dict['sub_ID'].get_value(), 'ID'):
             # enter the fields' values to the output dictionary
             subject_info = self.update_info_dictionary(subject_info, self.info_dict)
+            # if an experiment was chosen, update the experiment fields as well
+            if experiment_name is not None and experiment_name not in ['Experiments', 'Add New']:
+                subject_info = self.update_info_dictionary(subject_info, self.exp_info_dict)
             # todo: delete the 'no_exp' part once the back end function is updated [I keep it here for testing]
             if not experiment_name:
                 subject_info['exp_name'] = 'no_exp'
             if self.validate_range_fields(self.range_subject, subject_info):
+                print('#######')
+                print(subject_info)
                 add_or_update(subject_info)
                 self.refresh_exp_lists()
                 self.show_dialog('The participant was updated')
-                print('#######')
-                print(subject_info)
                 # print('EXPERIMENT VALUE')
                 # print(type(self.info_dict['send_mails'].get_value()))
 
-    def update_info_dictionary(self, info_dictionary, widget_dictionary: dict):
-        """receives a widget dictionary and returns a dictionary with non-empty values"""
-        new_info_dictionary = dict()
+    def update_info_dictionary(self, info_dictionary, widget_dictionary: dict)->dict:
+        """
+        receives a widget dictionary and participant's info dict
+        returns a dictionary with non-empty values
+        """
         for label in widget_dictionary:
             value = widget_dictionary[label].get_value()
             # if the field's value exists and isn't empty, add it to the dictionary
             if value is not None and value != '':
-                new_info_dictionary[label] = value
-        return new_info_dictionary
+                info_dictionary[label] = value
+        return info_dictionary
 
     def validate_range_fields(self, range_dict: dict, participant_info: dict)->bool:
         for label in range_dict:
