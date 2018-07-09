@@ -67,6 +67,16 @@ def add_new_fields_to_tables():
         if row['field_type'] == 'text':
             exec(table_name + '._meta.add_field(field_name,CharField(null=True))')
 
+        if table_name == 'Experiment':
+            experiment_fields.append(field_name)
+            col_order_experiment.append(field_name)
+        else:
+            subject_fields.append(field_name)
+            col_order_subjects.append(field_name)
+            col_order_experiment.append(field_name)
+
+
+add_new_fields_to_tables()
 
 def unique_experiments():
     exp_list = list(set([exp.exp_name for exp in Experiment.select()]))
@@ -237,12 +247,24 @@ def add_new_field(table_name,field_name,field_type):
     dict = {'integer': IntegerField(null=True), 'boolean': BooleanField(null=True), 'date': DateField(null=True), 'text': CharField(null=True)}
     field = dict[field_type]
 
-    print(table_name)
-    print(field_name)
-    print(field_type)
-
     migrator = SqliteMigrator(db)
     migrate(migrator.add_column(table_name,field_name,field))
+
+    if field_type == 'integer':
+        exec(table_name + '._meta.add_field(field_name,IntegerField(null=True))')
+    if field_type == 'boolean':
+        exec(table_name + '._meta.add_field(field_name,BooleanField(null=True))')
+    if field_type == 'date':
+        exec(table_name + '._meta.add_field(field_name,DateField(null=True))')
+    if field_type == 'text':
+        exec(table_name + '._meta.add_field(field_name,CharField(null=True))')
+
+    subject_fields.append(field_name)
+    col_order_subjects.append(field_name)
+    col_order_experiment.append(field_name)
+
+    tables.table_subjects = get_table_subjects()
+    tables.table_experiment = get_table_experiment()
 
 
 db.close()

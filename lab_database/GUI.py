@@ -738,8 +738,9 @@ class LabApp(App):
         """
         adds the new field to added_fields.csv and calls add_new_field (from back_end) to add the field to the DB.
         """
-        if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)' and self.new_field_widgets[3].get_value() == '':
+        if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)':
             self.dialog.hide()
+        if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)' and self.new_field_widgets[3].get_value() == '':
             self.show_dialog('No options list was provided. Please choose a different field type or provide an options list.')
         else:
             row = []
@@ -770,8 +771,6 @@ class LabApp(App):
 
             self.new_fields_to_dicts()
             self.clear_filters()
-            tables.table_subjects = get_table_subjects()
-            tables.table_experiment = get_table_experiment()
             self.show_dialog('The new field was added to the DB.')
 
     """
@@ -796,9 +795,7 @@ class LabApp(App):
             self.new_field_widgets = self.new_field_widgets[:3]
 
     def new_fields_to_dicts(self,*args):
-        add_new_fields_to_tables()
-
-        dict = {'Subject':{'integer':self.range_subject, 'boolean':self.checkbox_subject,
+        dict_to_dicts = {'Subject':{'integer':self.range_subject, 'boolean':self.checkbox_subject,
                            'date':self.date_subject,'text':[self.dropdown_subject, self.textinput_subject]},
                 'Experiment':{'integer':self.range_experiment, 'boolean':self.checkbox_experiment,
                               'date':self.date_experiment,'text':[self.dropdown_experiment, self.textinput_experiment]}}
@@ -814,29 +811,24 @@ class LabApp(App):
                     options_set = row.str.replace(', ',',')['options_set']
                     options_set = options_set.split(',')
                     options_set = [field_name_for_display] + options_set
-                    dict[table_name][field_type][0][field_name] = options_set
+                    dict_to_dicts[table_name][field_type][0][field_name] = options_set
                     switch_dict[field_name] = 'other'
                 else:
-                    dict[table_name][field_type][1][field_name] = field_name_for_display
+                    dict_to_dicts[table_name][field_type][1][field_name] = field_name_for_display
                     switch_dict[field_name] = 'textinput'
             else:
-                dict[table_name][field_type][field_name] = field_name_for_display
+                dict_to_dicts[table_name][field_type][field_name] = field_name_for_display
                 if field_type == 'integer':
                     switch_dict[field_name] = 'range'
                 else:
                     switch_dict[field_name] = 'other'
 
-            if not field_name in col_order_experiment:
-                if table_name == 'Experiment':
-                    self.order_experiment.append(field_name)
-                    experiment_fields.append(field_name)
-                    col_order_experiment.append(field_name)
-                else:
-                    self.order_filters.append(field_name)
-                    self.order_subject.append(field_name)
-                    subject_fields.append(field_name)
-                    col_order_subjects.append(field_name)
-                    col_order_experiment.append(field_name)
+            if table_name == 'Experiment':
+                self.order_experiment.append(field_name)
+
+            else:
+                self.order_filters.append(field_name)
+                self.order_subject.append(field_name)
 
 
 def start_gui():
@@ -852,10 +844,9 @@ def start_scheduler():
 
 start_gui()
 
-"""
+
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
-"""
