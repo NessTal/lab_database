@@ -558,15 +558,15 @@ class LabApp(App):
 
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
-        subject_info = dict()
+        subject_info = dict()  # output dict
         experiment_name = self.exp_info_dict['exp_name'].get_value()
         # validate that there is an ID, and that it only contains numbers
         if self.info_dict['sub_ID'].get_value() == '':
             self.show_dialog('Please enter the ID')
         elif self.validate_int(self.info_dict['sub_ID'].get_value(), 'ID'):
             # enter the fields' values to the output dictionary
-            for label in self.info_dict:
-                subject_info[label] = self.info_dict[label].get_value()
+            subject_info = self.update_info_dictionary(subject_info, self.info_dict)
+            # todo: delete the 'no_exp' part once the back end function is updated [I keep it here for testing]
             if not experiment_name:
                 subject_info['exp_name'] = 'no_exp'
             # if a numeric field is empty, send 'None' to the database
@@ -582,6 +582,16 @@ class LabApp(App):
             print(subject_info)
             # print('EXPERIMENT VALUE')
             # print(type(self.info_dict['send_mails'].get_value()))
+
+    def update_info_dictionary(self, info_dictionary, widget_dictionary: dict):
+        """receives a widget dictionary and returns a dictionary with non-empty values"""
+        new_info_dictionary = dict()
+        for label in widget_dictionary:
+            value = widget_dictionary[label].get_value()
+            # if the field's value exists and isn't empty, add it to the dictionary
+            if value is not None and value != '':
+                new_info_dictionary[label] = value
+        return new_info_dictionary
 
     def validate_range_fields(self, range_dict: dict, info_dict: dict)->bool:
         for label in range_dict:
