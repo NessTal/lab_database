@@ -578,6 +578,8 @@ class LabApp(App):
             add_or_update(subject_info)
             self.refresh_exp_lists()
             self.show_dialog('The participant was updated')
+            print('#######')
+            print(subject_info)
             # print('EXPERIMENT VALUE')
             # print(type(self.info_dict['send_mails'].get_value()))
 
@@ -628,7 +630,15 @@ class LabApp(App):
             self.exp_info_dict['exp_name'].set_value('Experiments')
             self.dialog.hide()
             # else, if the experiment exists, alert the user and set the value accordingly
+        elif new_experiment_name in self.exp_names:
+            self.dialog.hide()
+            self.show_dialog('The experiment already exists')
+            self.exp_info_dict['exp_name'].set_value(new_experiment_name)
             # else add the experiment to the drop down widget and set the value accordingly [alert the user?]
+        else:
+            self.exp_info_dict['exp_name'].add_child(-1, gui.DropDownItem(new_experiment_name))
+            self.exp_info_dict['exp_name'].set_value(new_experiment_name)
+            self.dialog.hide()
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
