@@ -569,19 +569,14 @@ class LabApp(App):
             # todo: delete the 'no_exp' part once the back end function is updated [I keep it here for testing]
             if not experiment_name:
                 subject_info['exp_name'] = 'no_exp'
-            # if a numeric field is empty, send 'None' to the database
-            for label in self.range_subject:
-                numeric_value = self.info_dict[label].get_value()
-                if numeric_value == '':
-                    subject_info[label] = None
-                # if self.validate_range_fields(self.range_subject, self.info_dict):
-            add_or_update(subject_info)
-            self.refresh_exp_lists()
-            self.show_dialog('The participant was updated')
-            print('#######')
-            print(subject_info)
-            # print('EXPERIMENT VALUE')
-            # print(type(self.info_dict['send_mails'].get_value()))
+            if self.validate_range_fields(self.range_subject, subject_info):
+                add_or_update(subject_info)
+                self.refresh_exp_lists()
+                self.show_dialog('The participant was updated')
+                print('#######')
+                print(subject_info)
+                # print('EXPERIMENT VALUE')
+                # print(type(self.info_dict['send_mails'].get_value()))
 
     def update_info_dictionary(self, info_dictionary, widget_dictionary: dict):
         """receives a widget dictionary and returns a dictionary with non-empty values"""
@@ -593,11 +588,12 @@ class LabApp(App):
                 new_info_dictionary[label] = value
         return new_info_dictionary
 
-    def validate_range_fields(self, range_dict: dict, info_dict: dict)->bool:
+    def validate_range_fields(self, range_dict: dict, participant_info: dict)->bool:
         for label in range_dict:
-            row_title = self.row_titles_search[label]
-            if not self.validate_int(info_dict[label].get_value(), row_title):
-                return False
+            if label in participant_info:
+                row_title = self.row_titles_search[label]
+                if not self.validate_int(participant_info[label], row_title):
+                    return False
         return True
 
     def new_exp_click(self, *args):
@@ -653,14 +649,14 @@ class LabApp(App):
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
         try:
-            x = int(num)
+            x = float(num)
             return True
         except ValueError:
             if not debug:
                 self.show_dialog(f'The field "{field}" can only contain numbers')
                 return False
             else:
-                raise ValueError # for testing
+                raise ValueError  # for testing
 
     def import_from_excel(self):
         import_box = gui.HBox(width = 300, height = 80)
