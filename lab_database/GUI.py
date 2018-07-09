@@ -6,6 +6,7 @@ from filt_switch import *
 from apscheduler.schedulers.blocking import BlockingScheduler
 import multiprocessing
 import csv
+import numpy as np
 
 class LabApp(App):
     def __init__(self, *args):
@@ -503,7 +504,7 @@ class LabApp(App):
                       'checkbox': gui.CheckBox}
         box = types_dict[box_type]()  # create a widget
         if box_type == 'spinbox':
-            box.set_value('-1')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
+            box.set_value('')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
         elif box_type == 'drop_down':
             for idx, item in enumerate(widget_dictionary[label]):
                 box.add_child(idx + 1, gui.DropDownItem(item))
@@ -568,13 +569,17 @@ class LabApp(App):
                 subject_info[label] = self.info_dict[label].get_value()
             if not experiment_name:
                 subject_info['exp_name'] = 'no_exp'
-            # make sure that the numeric fields only contain numbers
-            if self.validate_range_fields(self.range_subject, self.info_dict):
-                add_or_update(subject_info)
-                self.refresh_exp_lists()
-                self.show_dialog('The participant was updated')
-                # print('EXPERIMENT VALUE')
-                # print(type(self.info_dict['send_mails'].get_value()))
+            # if a numeric field is empty, send 'None' to the database
+            for label in self.range_subject:
+                numeric_value = self.info_dict[label].get_value()
+                if numeric_value == '':
+                    subject_info[label] = None
+                # if self.validate_range_fields(self.range_subject, self.info_dict):
+            add_or_update(subject_info)
+            self.refresh_exp_lists()
+            self.show_dialog('The participant was updated')
+            # print('EXPERIMENT VALUE')
+            # print(type(self.info_dict['send_mails'].get_value()))
 
     def validate_range_fields(self, range_dict: dict, info_dict: dict)->bool:
         for label in range_dict:
