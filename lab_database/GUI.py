@@ -504,7 +504,7 @@ class LabApp(App):
                       'checkbox': gui.CheckBox}
         box = types_dict[box_type]()  # create a widget
         if box_type == 'spinbox':
-            box.set_value('')  # todo: '-1' is a temp value to avoid bugs. This should eventually be: ''.
+            box.set_value('')
         elif box_type == 'drop_down':
             for idx, item in enumerate(widget_dictionary[label]):
                 box.add_child(idx + 1, gui.DropDownItem(item))
@@ -548,13 +548,13 @@ class LabApp(App):
                 # todo: clear all fields (other than the searched field)
             # else, add the subject's fields to the table
             else:
-                self.add_subject(subj_data)
+                self.add_subject_data(subj_data, self.info_dict)
 
-    def add_subject(self, data):
+    def add_subject_data(self, subj_data: pd.DataFrame, widget_dict: dict):
         """add a subject's details"""
         # access the relevant widgets and set the values in the DataFrame
-        for label in self.info_dict:
-            self.info_dict[label].set_value(str(data[label].values[0]))
+        for label in widget_dict:
+            widget_dict[label].set_value(str(subj_data[label].values[0]))
 
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
