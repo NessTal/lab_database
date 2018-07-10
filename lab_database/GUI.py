@@ -191,7 +191,8 @@ class LabApp(App):
         export_box = gui.HBox(width = 350, height= 50)
         export_button = gui.Button('Export to Excel', width = 140)
         export_button.set_on_click_listener(self.export_to_excel_listener)
-        export_file_name_input = gui.TextInput(hint='file name', width = 195, height=22)
+        export_file_name_input = gui.TextInput(hint='file name', width = 195)
+        export_file_name_input.style['padding'] = '4px'
         export_box.append(export_button)
         export_box.append(export_file_name_input)
         self.filter_export_file_name = export_file_name_input
@@ -566,7 +567,7 @@ class LabApp(App):
             print(f'get_if_exists result: {subj_data}')
             # if the user does not exist, add the field we searched to the table so a new user could be created
             if type(subj_data) != pd.DataFrame:
-                if subj_data == 'Too many':
+                if subj_data == 'Too many!':
                     self.show_dialog('More then one participant was found. Please search by ID.')
                 else:
                     self.show_dialog('No subject found, you can add a new subject below')
@@ -696,7 +697,8 @@ class LabApp(App):
 
     def import_from_excel(self):
         import_box = gui.HBox(width = 300, height = 80)
-        import_file = gui.TextInput(hint='File name', width = 140, height = 18)
+        import_file = gui.TextInput(hint='File name', width = 140)
+        import_file.style['padding'] = '4px'
         import_button = gui.Button('Import from excel', width = 140)
         import_button.set_on_click_listener(self.import_from_excel_listener)
         import_box.append(import_button)
@@ -733,7 +735,8 @@ class LabApp(App):
         new_field_tab.style['padding-bottom'] = '40px'
         field_name_box = gui.HBox()
         field_name_box.style['margin'] = '10px'
-        field_name = gui.TextInput(width=370)
+        field_name = gui.TextInput(width=366)
+        field_name.style['padding'] = '2px'
         self.new_field_widgets.append(field_name)
         field_name_box.append(gui.Label('Field name:', width=130))
         field_name_box.append(field_name)
@@ -742,6 +745,7 @@ class LabApp(App):
         to_which_table_box = gui.HBox()
         to_which_table_box.style['margin'] = '10px'
         to_which_table = gui.DropDown(width=370)
+        to_which_table.style['padding'] = '2px'
         to_which_table.append(gui.DropDownItem('Select'))
         to_which_table.append(gui.DropDownItem('a general "property" of a subject (e.g. reading span)'))
         to_which_table.append(gui.DropDownItem('a value in a specific experiment (e.g. experimental list)'))
@@ -753,6 +757,7 @@ class LabApp(App):
         field_type_box = gui.HBox()
         field_type_box.style['margin'] = '10px'
         field_type = gui.DropDown(width=370)
+        field_type.style['padding'] = '2px'
         field_type.append(gui.DropDownItem('Select'))
         field_type.append(gui.DropDownItem('Numerical, with range filtering'))
         field_type.append(gui.DropDownItem('Text/number, with a fixed set of options (scroll list)'))
