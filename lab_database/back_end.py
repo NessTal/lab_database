@@ -28,9 +28,8 @@ class Subject(Model):
     send_mails = BooleanField(null=True)
     reading_span = IntegerField(null=True)
     gender = CharField(null=True)
-    hebrew_age = IntegerField(null=True)
+    hebrew_age = FloatField(null=True)
     other_languages = CharField(null=True)
-#    new_field = IntegerField(null=True) # todo: find a way to add via code!!!
 
     class Meta:
         database = db # This model uses the "subjects.db" database.
@@ -59,7 +58,7 @@ def add_new_fields_to_tables():
         field_name = row['field_name']
         table_name = row['table_name']
         if row['field_type'] == 'integer':
-            exec(table_name + '._meta.add_field(field_name,IntegerField(null=True))')
+            exec(table_name + '._meta.add_field(field_name,FloatField(null=True))')
         if row['field_type'] == 'boolean':
             exec(table_name + '._meta.add_field(field_name,BooleanField(null=True))')
         if row['field_type'] == 'date':
@@ -92,6 +91,15 @@ def get_table_subjects():
             data_dict.setdefault(key, []).append(val)
     df = pd.DataFrame.from_dict(data_dict).drop(columns=['id'])
     df = df[col_order_subjects]
+    #df.loc[df['year_of_birth'].astype(str).values == 'nan','year_of_birth'] = 0
+    #df['year_of_birth'] = df['year_of_birth'].astype(int)
+    #df['year_of_birth'] = df['year_of_birth'].astype(str)
+    #df.loc[df['year_of_birth'] == '0','year_of_birth'] = 'None'
+    #df.loc[df['reading_span'].astype(str).values == 'nan','reading_span'] = 0
+    #df.loc[df['reading_span'].astype(str).values == 'None','reading_span'] = 0
+    #df['reading_span'] = df['reading_span'].astype(int)
+    #df['reading_span'] = df['reading_span'].astype(str)
+    #df.loc[df['reading_span'] == '0','reading_span'] = 'None'
     return df
 
 
@@ -158,23 +166,25 @@ def add_or_update(dict):
         sub = Subject.create(**sub_dict)
         sub.save()
         exp_dict['subject'] = sub
-        Experiment.create(**exp_dict).save()
+        if 'exp_name' in list(exp_dict.keys()):
+            Experiment.create(**exp_dict).save()
     else:
         sub = sub.get()
         for key, val in sub_dict.items():
             setattr(sub, key, val)
         sub.save()
-        exp = Experiment.select().where((Experiment.subject == sub) & (Experiment.exp_name == exp_dict['exp_name']))
-        if exp.exists():
-            exp = exp.get()
-            for key, val in exp_dict.items():
-                setattr(exp, key, val)
-            exp.save()
-        else:
-            exp_dict['subject'] = sub
-            Experiment.create(**exp_dict).save()
+        if 'exp_name' in list(exp_dict.keys()):
+            exp = Experiment.select().where((Experiment.subject == sub) & (Experiment.exp_name == exp_dict['exp_name']))
+            if exp.exists():
+                exp = exp.get()
+                for key, val in exp_dict.items():
+                    setattr(exp, key, val)
+                exp.save()
+            else:
+                exp_dict['subject'] = sub
+                Experiment.create(**exp_dict).save()
+            tables.table_experiment = get_table_experiment()
     tables.table_subjects = get_table_subjects()
-    tables.table_experiment = get_table_experiment()
     export_all_to_csv()
 
 
@@ -244,7 +254,7 @@ def import_from_excel(file):
 
 
 def add_new_field(table_name,field_name,field_type):
-    dict = {'integer': IntegerField(null=True), 'boolean': BooleanField(null=True), 'date': DateField(null=True), 'text': CharField(null=True)}
+    dict = {'integer': FloatField(null=True), 'boolean': BooleanField(null=True), 'date': DateField(null=True), 'text': CharField(null=True)}
     field = dict[field_type]
 
     migrator = SqliteMigrator(db)

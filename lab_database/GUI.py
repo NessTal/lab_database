@@ -68,7 +68,7 @@ class LabApp(App):
         """
         self.new_fields_to_dicts()
         container = gui.TabBox()
-        container.add_tab(self.filters_tab(), 'Filter', 'Filter')
+        container.add_tab(self.filters_tab(), 'Filters', 'Filters')
         container.add_tab(self.edit_widget(), 'Add or Edit Subjects', 'Add or Edit Subjects')
         container.add_tab(self.new_field_tab(), 'Add New Fields', 'Add New Fields')
         return container
@@ -389,7 +389,9 @@ class LabApp(App):
         window3_container = gui.VBox()
         # Append to container
         window3_container.append(self.search_by_container())
-        window3_container.append(self.participant_info())
+        self.window3_for_clear = gui.VBox()
+        self.window3_for_clear.append(self.participant_info())
+        window3_container.append(self.window3_for_clear)
         window3_container.append(self.import_from_excel())
         return window3_container  # edit_widget
 
@@ -406,6 +408,7 @@ class LabApp(App):
         self.search_input = gui.Input()
         self.search_widgets['search by value'] = self.search_input
         self.search_button = gui.Button('Search')
+        self.search_button.style['padding'] = '5px'
 
         # Append to container
         search_field_container.append(search_by_label)
@@ -483,17 +486,28 @@ class LabApp(App):
 
         # Create labels
         participant_label = gui.Label('Participant')
+        participant_label.style['margin-top'] = '5px'
         experiment_label = gui.Label('Experiment')
+        experiment_label.style['margin-top'] = '5px'
 
-        # Create update button
+        # Create update and clear buttons
         self.update_info = gui.Button('Update Info')
+        self.update_info.style['padding'] = '5px'
+        clear_info = gui.Button('Clear')
+        clear_info.style['padding'] = '5px'
+        clear_info.style['margin-right'] = '5px'
+        clear_info.set_on_click_listener(self.clear_window3)
+        buttons_box = gui.HBox()
+        buttons_box.style['margin-top'] = '5px'
+        buttons_box.append(clear_info)
+        buttons_box.append(self.update_info)
 
         # Add widgets to the container
         info_container.append(participant_label)
         info_container.append(participant_table)
         info_container.append(experiment_label)
         info_container.append(experiment_table)
-        info_container.append(self.update_info)
+        info_container.append(buttons_box)
 
         self.exp_info_dict['exp_name'].set_on_change_listener(self.new_exp_click)
         self.update_info.set_on_click_listener(self.update_subject_click)
@@ -554,10 +568,12 @@ class LabApp(App):
                     self.show_dialog('More then one participant was found. Please search by ID.')
                 else:
                     self.show_dialog('No subject found, you can add a new subject below')
+                    self.clear_window3()
                     self.info_dict[field].set_value(str(search_value))  # todo: it doesn't work for full name
                 # todo: clear all fields (other than the searched field)
             # else, add the subject's fields to the table
             else:
+                self.clear_window3()
                 self.add_subject_data(subj_data, self.info_dict)
 
     def add_subject_data(self, subj_data: pd.DataFrame, widget_dict: dict):
@@ -579,9 +595,6 @@ class LabApp(App):
             # if an experiment was chosen, update the experiment fields as well
             if experiment_name is not None and experiment_name not in ['Experiments', 'Add New']:
                 subject_info = self.update_info_dictionary(subject_info, self.exp_info_dict)
-            # todo: delete the 'no_exp' part once the back end function is updated [I keep it here for testing]
-            if not experiment_name:
-                subject_info['exp_name'] = 'no_exp'
             if self.validate_range_fields(self.range_subject, subject_info):
                 print(f'to add_or_update: {subject_info}')
                 add_or_update(subject_info)
@@ -688,6 +701,10 @@ class LabApp(App):
         import_box.append(import_file)
         self.import_file_name = import_file
         return import_box
+
+    def clear_window3(self,*args):
+        self.window3_for_clear.empty()
+        self.window3_for_clear.append(self.participant_info())
 
     def import_from_excel_listener(self,*args):
         file_name = self.import_file_name.get_value()
@@ -898,11 +915,12 @@ def start_scheduler():
 
 
 
-#start_gui()
+start_gui()
 
-
+"""
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
+"""
