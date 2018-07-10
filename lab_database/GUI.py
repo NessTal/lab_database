@@ -15,32 +15,32 @@ class LabApp(App):
         self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
         self.textinput_subject = {'other_languages':'Other languages'}
         self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
-        self.textinput_search = {'sub_ID': 'ID',
-                                 'first': 'First name',
-                                 'last': 'Last name',
+        self.textinput_search = {'subject_ID': 'ID',
+                                 'first_name': 'First name',
+                                 'last_name': 'Last name',
                                  'mail': 'e-mail',
                                  'other_languages': 'Other languages',
-                                 'sub_notes': 'Comments'}
+                                 'subject_notes': 'Comments'}
         self.date_subject = dict()
         self.range_experiment = dict()
-        self.dropdown_experiment = {'exp_name': ['Experiments', 'Add New'] + self.exp_names}
-        self.textinput_experiment = {'sub_code': 'Subject number',
+        self.dropdown_experiment = {'experiment': ['Experiments', 'Add New'] + self.exp_names}
+        self.textinput_experiment = {'participant_number': 'Subject number',
                                      'exp_list': 'List',
-                                     'exp_notes': 'Comments'}
+                                     'experiment_notes': 'Comments'}
         self.checkbox_experiment = {'participated': 'Participated'}
         self.date_experiment = {'date': 'Date'}
         self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
-        self.order_subject = ['sub_ID', 'first', 'last', 'mail', 'gender', 'year_of_birth', 'dominant_hand',
+        self.order_subject = ['subject_ID', 'first_name', 'last_name', 'mail', 'gender', 'year_of_birth', 'dominant_hand',
                               'hebrew_age', 'other_languages', 'reading_span','send_mails',
-                              'sub_notes']
-        self.order_experiment = ['exp_name', 'participated', 'sub_code', 'date', 'exp_list', 'exp_notes']
-        self.row_titles_search = {'first': 'First name', 'last': 'Last name', 'sub_ID': 'ID',
+                              'subject_notes']
+        self.order_experiment = ['experiment', 'participated', 'participant_number', 'date', 'exp_list', 'experiment_notes']
+        self.row_titles_search = {'first_name': 'First name', 'last_name': 'Last name', 'subject_ID': 'ID',
                                   'year_of_birth': 'Year of birth', 'dominant_hand': 'Dominant hand', 'mail': 'e-mail',
-                                  'sub_notes': 'Comments', 'send_mails': 'Agreed to receive emails',
+                                  'subject_notes': 'Comments', 'send_mails': 'Agreed to receive emails',
                                   'reading_span': 'Reading span', 'gender': 'Gender',
                                   'hebrew_age': 'Hebrew exposure age', 'other_languages': 'Other languages',
-                                  'sub_code': 'Subject number', 'exp_name': 'Experiment', 'date': 'Date',
-                                  'participated': 'Participated', 'exp_notes': 'Comments', 'exp_list': 'List'}
+                                  'participant_number': 'Subject number', 'experiment': 'Experiment', 'date': 'Date',
+                                  'participated': 'Participated', 'experiment_notes': 'Comments', 'exp_list': 'List'}
 
         # lists containing the filter's widgets, for the function filter() to get their values:
         self.filter_bio_widgets = {}
@@ -312,7 +312,9 @@ class LabApp(App):
             print(f'selected filters: {selected_filters}')
             self.filter_results = filt(filt_dict = selected_filters, exp_list = exp_list)
             results_list_of_tuples = []
-            results_list_of_tuples.append(tuple(self.filter_results.columns.str.capitalize().str.replace('_',' ')))
+            titles = list(self.filter_results.columns.str.capitalize().str.replace('_',' '))
+            titles[titles.index('Subject id')] = 'Subject ID'
+            results_list_of_tuples.append(tuple(titles))
             self.filter_table.style['margin-top'] = '30px'
             for idx, row in self.filter_results.iterrows():
                 results_list_of_tuples.append(tuple(row))
@@ -509,7 +511,7 @@ class LabApp(App):
         info_container.append(experiment_table)
         info_container.append(buttons_box)
 
-        self.exp_info_dict['exp_name'].set_on_change_listener(self.new_exp_click)
+        self.exp_info_dict['experiment'].set_on_change_listener(self.new_exp_click)
         self.update_info.set_on_click_listener(self.update_subject_click)
         return info_container
 
@@ -585,11 +587,11 @@ class LabApp(App):
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
         subject_info = dict()  # output dict
-        experiment_name = self.exp_info_dict['exp_name'].get_value()
+        experiment_name = self.exp_info_dict['experiment'].get_value()
         # validate that there is an ID, and that it only contains numbers
-        if self.info_dict['sub_ID'].get_value() == '':
+        if self.info_dict['subject_ID'].get_value() == '':
             self.show_dialog('Please enter the ID')
-        elif self.validate_int(self.info_dict['sub_ID'].get_value(), 'ID'):
+        elif self.validate_int(self.info_dict['subject_ID'].get_value(), 'ID'):
             # enter the fields' values to the output dictionary
             subject_info = self.update_info_dictionary(subject_info, self.info_dict)
             # if an experiment was chosen, update the experiment fields as well
@@ -622,11 +624,11 @@ class LabApp(App):
         return True
 
     def new_exp_click(self, *args):
-        exp_name = self.exp_info_dict['exp_name'].get_value()
+        exp_name = self.exp_info_dict['experiment'].get_value()
         if exp_name == 'Add New':
             self.enter_new_exp()
         elif exp_name not in [None, 'Experiments']:
-            subj_id = int(self.info_dict['sub_ID'].get_value())
+            subj_id = int(self.info_dict['subject_ID'].get_value())
             if subj_id == '':
                 self.show_dialog("Enter the participant's ID")
             elif self.validate_int(subj_id, 'ID'):
@@ -659,7 +661,7 @@ class LabApp(App):
 
     def new_exp_cancel_listener(self, *args):
         """Closes the dialog if the user clicks on 'Cancel'"""
-        self.exp_info_dict['exp_name'].set_value('Experiments')
+        self.exp_info_dict['experiment'].set_value('Experiments')
         self.dialog.hide()
 
     def new_exp_ok_listener(self, *args):
@@ -667,17 +669,17 @@ class LabApp(App):
         new_experiment_name = self.search_widgets['new_experiment_name'].get_value()
         # if the user did not enter any name, act as 'Cancel'
         if new_experiment_name == '':
-            self.exp_info_dict['exp_name'].set_value('Experiments')
+            self.exp_info_dict['experiment'].set_value('Experiments')
             self.dialog.hide()
             # else, if the experiment exists, alert the user and set the value accordingly
         elif new_experiment_name in self.exp_names:
             self.dialog.hide()
             self.show_dialog('The experiment already exists')
-            self.exp_info_dict['exp_name'].set_value(new_experiment_name)
+            self.exp_info_dict['experiment'].set_value(new_experiment_name)
             # else add the experiment to the drop down widget and set the value accordingly [alert the user?]
         else:
-            self.exp_info_dict['exp_name'].add_child(-1, gui.DropDownItem(new_experiment_name))
-            self.exp_info_dict['exp_name'].set_value(new_experiment_name)
+            self.exp_info_dict['experiment'].add_child(-1, gui.DropDownItem(new_experiment_name))
+            self.exp_info_dict['experiment'].set_value(new_experiment_name)
             self.dialog.hide()
 
     def validate_int(self, num, field: str, debug=False)->bool:

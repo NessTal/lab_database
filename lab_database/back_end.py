@@ -6,25 +6,25 @@ from filt_switch import FiltSwitch
 
 db = SqliteDatabase('./subjects.db')
 
-subject_fields = ['first', 'last','sub_ID','year_of_birth','dominant_hand','mail','sub_notes',
+subject_fields = ['first_name', 'last_name','subject_ID','year_of_birth','dominant_hand','mail','subject_notes',
                   'send_mails','reading_span','gender','hebrew_age','other_languages']
-experiment_fields = ['sub_code','exp_name','date','participated','exp_notes','exp_list']
+experiment_fields = ['participant_number','experiment','date','participated','experiment_notes','exp_list']
 
-col_order_subjects = ['first', 'last','sub_ID','mail','year_of_birth','gender','hebrew_age','other_languages',
-                      'dominant_hand','reading_span','sub_notes','send_mails']
-col_order_experiment = ['exp_name','sub_code','exp_list','date','first', 'last','sub_ID','mail','year_of_birth','gender',
-                        'hebrew_age','other_languages','dominant_hand','reading_span','sub_notes','exp_notes',
+col_order_subjects = ['first_name', 'last_name','subject_ID','mail','year_of_birth','gender','hebrew_age','other_languages',
+                      'dominant_hand','reading_span','subject_notes','send_mails']
+col_order_experiment = ['experiment','participant_number','exp_list','date','first_name', 'last_name','subject_ID','mail','year_of_birth','gender',
+                        'hebrew_age','other_languages','dominant_hand','reading_span','subject_notes','experiment_notes',
                         'participated','send_mails']
 
 
 class Subject(Model):
-    first = CharField(null=True)
-    last = CharField(null=True)
-    sub_ID = IntegerField()
+    first_name = CharField(null=True)
+    last_name = CharField(null=True)
+    subject_ID = IntegerField()
     year_of_birth = IntegerField(null=True)
     dominant_hand = FixedCharField(null=True)
     mail = CharField(null=True)
-    sub_notes = CharField(null=True)
+    subject_notes = CharField(null=True)
     send_mails = BooleanField(null=True)
     reading_span = IntegerField(null=True)
     gender = CharField(null=True)
@@ -37,11 +37,11 @@ class Subject(Model):
 
 class Experiment(Model):
     subject = ForeignKeyField(Subject, backref='experiments')
-    sub_code = CharField(null=True)
-    exp_name = CharField()
+    participant_number = CharField(null=True)
+    experiment = CharField()
     date = DateTimeField(null=True)
     participated = BooleanField(null=True)
-    exp_notes = CharField(null=True)
+    experiment_notes = CharField(null=True)
     exp_list = CharField(null=True)
 
     class Meta:
@@ -78,7 +78,7 @@ def add_new_fields_to_tables():
 add_new_fields_to_tables()
 
 def unique_experiments():
-    exp_list = list(set([exp.exp_name for exp in Experiment.select()]))
+    exp_list = list(set([exp.experiment for exp in Experiment.select()]))
     exp_list.sort(key=str.lower)
     return exp_list
 
@@ -136,45 +136,45 @@ def get_if_exists(identifier, experiment = None):
     output = False
     if ' ' in str(identifier):
         first, last = identifier.split(" ", 1)
-        sub = Subject.select().where((Subject.first == first) & (Subject.last == last))
+        sub = Subject.select().where((Subject.first_name == first) & (Subject.last_name == last))
     else:
         if type(identifier) == str:
             sub = Subject.select().where(Subject.mail == identifier)
         else:
-            sub = Subject.select().where(Subject.sub_ID == identifier)
+            sub = Subject.select().where(Subject.subject_ID == identifier)
     if sub.count() > 1:
         output = 'Too many!'
     elif sub.exists():
         sub = sub.get()
         if experiment != None:
-            exp = Experiment.select().where((Experiment.subject == sub) & (Experiment.exp_name == experiment))
+            exp = Experiment.select().where((Experiment.subject == sub) & (Experiment.experiment == experiment))
             if exp.exists():
                 exp = exp.get()
                 exp_table = tables.table_experiment
-                output = exp_table.loc[list(exp_table['sub_ID'] == sub.sub_ID)]  #####
-                output = output.loc[list(output['exp_name'] == exp.exp_name)]
+                output = exp_table.loc[list(exp_table['subject_ID'] == sub.subject_ID)]  #####
+                output = output.loc[list(output['experiment'] == exp.experiment)]
         if type(output) != pd.DataFrame:
             sub_table = tables.table_subjects
-            output = sub_table.loc[sub_table['sub_ID'] == sub.sub_ID]  #####
+            output = sub_table.loc[sub_table['subject_ID'] == sub.subject_ID]  #####
     return output
 
 
 def add_or_update(dict):
     sub_dict,exp_dict = devide_dict(dict)
-    sub = Subject.select().where(Subject.sub_ID == sub_dict['sub_ID'])  #####
+    sub = Subject.select().where(Subject.subject_ID == sub_dict['subject_ID'])  #####
     if sub.exists() == False:
         sub = Subject.create(**sub_dict)
         sub.save()
         exp_dict['subject'] = sub
-        if 'exp_name' in list(exp_dict.keys()):
+        if 'experiment' in list(exp_dict.keys()):
             Experiment.create(**exp_dict).save()
     else:
         sub = sub.get()
         for key, val in sub_dict.items():
             setattr(sub, key, val)
         sub.save()
-        if 'exp_name' in list(exp_dict.keys()):
-            exp = Experiment.select().where((Experiment.subject == sub) & (Experiment.exp_name == exp_dict['exp_name']))
+        if 'experiment' in list(exp_dict.keys()):
+            exp = Experiment.select().where((Experiment.subject == sub) & (Experiment.experiment == exp_dict['experiment']))
             if exp.exists():
                 exp = exp.get()
                 for key, val in exp_dict.items():
@@ -196,26 +196,26 @@ def filt(filt_dict, exp_list = 0):
     for key, val in filt_dict.items():
         sub = FiltSwitch().filter_by_key(key, val, sub)
 
-    for subject in sub['sub_ID'].values:  #####
-        sub_exp = exp.loc[exp['sub_ID'] == subject]  #####
-        sub_exp = sub_exp['exp_name'].values
+    for subject in sub['subject_ID'].values:  #####
+        sub_exp = exp.loc[exp['subject_ID'] == subject]  #####
+        sub_exp = sub_exp['experiment'].values
 
         # Exclude by experiments
         if 'exp_exclude' in filt_dict:
             for val in filt_dict['exp_exclude']:
                 if val in sub_exp:
-                    sub = sub.loc[sub['sub_ID'] != subject]  #####
+                    sub = sub.loc[sub['subject_ID'] != subject]  #####
 
         if exp_list == 0:
             # Include by experiments
             if 'exp_include' in filt_dict:
                 for val in filt_dict['exp_include']:
                     if (val in sub_exp) == False:
-                        sub = sub.loc[sub['sub_ID'] != subject]  #####
+                        sub = sub.loc[sub['subject_ID'] != subject]  #####
 
     if exp_list == 1:  # If an experiment list was requested, return a df that includes the fields specific for this experiment.
-        exp = exp.loc[exp['exp_name'] == filt_dict['exp_include'][0]]
-        result = exp.loc[exp['sub_ID'].isin(sub['sub_ID'])]  #####
+        exp = exp.loc[exp['experiment'] == filt_dict['exp_include'][0]]
+        result = exp.loc[exp['subject_ID'].isin(sub['subject_ID'])]  #####
     else:
         result = sub
     return result
@@ -241,7 +241,7 @@ def import_from_excel(file):
     dict = df.to_dict(orient = 'list')
     #dict['date'] = [datetime.datetime.strptime(date, '%d-%m-%y').date() for date in dict['date']]
     row_num = 0
-    for row in dict['sub_ID']:  #####
+    for row in dict['subject_ID']:  #####
         row_dict = {}
         for key, list in dict.items():
             if str(list[row_num]) != 'nan':
