@@ -309,7 +309,7 @@ class LabApp(App):
                     selected_filters[filter] = val
 
             # send selected filters (dict) to filt and receive a data frame with the filtered results:
-            print(selected_filters)
+            print(f'selected filters: {selected_filters}')
             self.filter_results = filt(filt_dict = selected_filters, exp_list = exp_list)
             results_list_of_tuples = []
             results_list_of_tuples.append(tuple(self.filter_results.columns.str.capitalize().str.replace('_',' ')))
@@ -377,7 +377,7 @@ class LabApp(App):
         exp_mail(self.filter_results['mail'].tolist(),subject=self.mail_widgets[0].get_value(),contents=self.mail_widgets[1].get_value())
         self.dialog.hide()
         self.show_dialog('E-mails were sent!')
-        print(self.filter_results['mail'].tolist())
+        print(f'emails: {self.filter_results["mail"].tolist()}')
         print(self.mail_widgets[0].get_value())
         print(self.mail_widgets[1].get_value())
 
@@ -547,10 +547,14 @@ class LabApp(App):
             if field == 'ID':
                 search_value = int(search_value)
             subj_data = get_if_exists(search_value)
+            print(f'get_if_exists result: {subj_data}')
             # if the user does not exist, add the field we searched to the table so a new user could be created
             if type(subj_data) != pd.DataFrame:
-                self.show_dialog('No subject found, you can add a new subject below')
-                self.info_dict[field].set_value(str(search_value))  # todo: it doesn't work for full name
+                if subj_data == 'Too many':
+                    self.show_dialog('More then one participant was found. Please search by ID.')
+                else:
+                    self.show_dialog('No subject found, you can add a new subject below')
+                    self.info_dict[field].set_value(str(search_value))  # todo: it doesn't work for full name
                 # todo: clear all fields (other than the searched field)
             # else, add the subject's fields to the table
             else:
@@ -579,13 +583,10 @@ class LabApp(App):
             if not experiment_name:
                 subject_info['exp_name'] = 'no_exp'
             if self.validate_range_fields(self.range_subject, subject_info):
-                print('#######')
-                print(subject_info)
+                print(f'to add_or_update: {subject_info}')
                 add_or_update(subject_info)
                 self.refresh_exp_lists()
                 self.show_dialog('The participant was updated')
-                print('EXPERIMENT VALUE')
-                print(self.info_dict['send_mails'].get_value())
 
     def update_info_dictionary(self, info_dictionary, widget_dictionary: dict)->dict:
         """
@@ -611,18 +612,14 @@ class LabApp(App):
         exp_name = self.exp_info_dict['exp_name'].get_value()
         if exp_name == 'Add New':
             self.enter_new_exp()
-        # elif exp_name == 'ABC32':
-        #     print(self.exp_info_dict['date'].get_value())
         elif exp_name not in [None, 'Experiments']:
             subj_id = int(self.info_dict['sub_ID'].get_value())
             if subj_id == '':
                 self.show_dialog("Enter the participant's ID")
             elif self.validate_int(subj_id, 'ID'):
-                subj_data = get_if_exists(subj_id, exp_name)
+                subj_data = get_if_exists(subj_id, exp_name)   # @@@@@
                 self.add_subject_data(subj_data, self.exp_info_dict)
                 # todo: check if there is data for this experiment+user and clear exp fields if not
-                # print('@@@@')
-                # print(self.exp_info_dict['date'].get_value())
 
     def enter_new_exp(self):
         self.dialog.empty()
