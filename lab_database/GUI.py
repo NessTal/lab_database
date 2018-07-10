@@ -396,17 +396,21 @@ class LabApp(App):
     def search_by_container(self):
         """create search by drop down, input and button"""
         search_by_container = gui.HBox(width='60%', height='20%')
-        self.search_by_dd = gui.DropDown(width='30%')
-        self.search_by_dd.add_child(0, gui.DropDownItem('Search By'))
-        for idx, exp in enumerate(self.search_by):
-            self.search_by_dd.add_child(idx + 1, gui.DropDownItem(exp))
+        search_field_container = gui.HBox(width='30%', height='20%')
+        search_by_label = gui.Label('Search By:')
+        self.search_by_dd = gui.DropDown(width='60%')
+        for idx, item in enumerate(self.search_by):
+            self.search_by_dd.add_child(idx, gui.DropDownItem(item))
+        self.search_by_dd.set_value('ID')
         self.search_widgets['search by field'] = self.search_by_dd
         self.search_input = gui.Input()
         self.search_widgets['search by value'] = self.search_input
         self.search_button = gui.Button('Search')
 
         # Append to container
-        search_by_container.append(self.search_by_dd)
+        search_field_container.append(search_by_label)
+        search_field_container.append(self.search_by_dd)
+        search_by_container.append(search_field_container)
         search_by_container.append(self.search_input)
         search_by_container.append(self.search_button)
 
