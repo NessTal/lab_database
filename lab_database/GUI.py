@@ -512,6 +512,8 @@ class LabApp(App):
         elif box_type == 'drop_down':
             for idx, item in enumerate(widget_dictionary[label]):
                 box.add_child(idx + 1, gui.DropDownItem(item))
+        elif box_type == 'date':
+            box.set_value(None)
         output_dictionary[label] = box  # Store the widget in a dictionary
 
     def add_row(self, label, widget_dictionary):
@@ -582,8 +584,8 @@ class LabApp(App):
                 add_or_update(subject_info)
                 self.refresh_exp_lists()
                 self.show_dialog('The participant was updated')
-                # print('EXPERIMENT VALUE')
-                # print(type(self.info_dict['send_mails'].get_value()))
+                print('EXPERIMENT VALUE')
+                print(self.info_dict['send_mails'].get_value())
 
     def update_info_dictionary(self, info_dictionary, widget_dictionary: dict)->dict:
         """
@@ -593,7 +595,7 @@ class LabApp(App):
         for label in widget_dictionary:
             value = widget_dictionary[label].get_value()
             # if the field's value exists and isn't empty, add it to the dictionary
-            if value is not None and value != '':
+            if value not in [None, '', 'None', 'nan']:
                 info_dictionary[label] = value
         return info_dictionary
 
@@ -606,8 +608,21 @@ class LabApp(App):
         return True
 
     def new_exp_click(self, *args):
-        if self.exp_info_dict['exp_name'].get_value() == 'Add New':
+        exp_name = self.exp_info_dict['exp_name'].get_value()
+        if exp_name == 'Add New':
             self.enter_new_exp()
+        # elif exp_name == 'ABC32':
+        #     print(self.exp_info_dict['date'].get_value())
+        elif exp_name not in [None, 'Experiments']:
+            subj_id = int(self.info_dict['sub_ID'].get_value())
+            if subj_id == '':
+                self.show_dialog("Enter the participant's ID")
+            elif self.validate_int(subj_id, 'ID'):
+                subj_data = get_if_exists(subj_id, exp_name)
+                self.add_subject_data(subj_data, self.exp_info_dict)
+                # todo: check if there is data for this experiment+user and clear exp fields if not
+                # print('@@@@')
+                # print(self.exp_info_dict['date'].get_value())
 
     def enter_new_exp(self):
         self.dialog.empty()
