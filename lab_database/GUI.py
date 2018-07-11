@@ -901,7 +901,7 @@ class LabApp(App):
 
             self.new_fields_to_dicts()
             self.clear_filters()
-            # todo: clear Add or edit tab (only tables)
+            self.clear_window3()
             self.show_dialog('The new field was added to the DB.')
 
     """
