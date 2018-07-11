@@ -393,8 +393,10 @@ class LabApp(App):
         # Append to container
         window3_container.append(self.search_by_container())
         self.window3_for_clear = gui.VBox()
-        self.window3_for_clear.append(self.all_participant_info())
+        self.window3_for_clear.append(self.participant_info())
+        self.window3_for_clear.append(self.experiment_info())
         window3_container.append(self.window3_for_clear)
+        window3_container.append(self.participant_info_buttons())
         window3_container.append(self.import_from_excel())
         return window3_container  # edit_widget
 
@@ -509,7 +511,7 @@ class LabApp(App):
 
         return experiment_container
 
-    def all_participant_info(self):
+    def participant_info_buttons(self):
         """contains participant info, experiment info and the relevant buttons"""
         info_container = gui.VBox()
         # Create update and clear buttons
@@ -525,8 +527,6 @@ class LabApp(App):
         buttons_box.append(self.update_info)
 
         # Add widgets to the container
-        info_container.append(self.participant_info())
-        info_container.append(self.experiment_info())
         info_container.append(buttons_box)
 
         self.exp_info_dict['experiment'].set_on_change_listener(self.new_exp_click)
@@ -736,7 +736,8 @@ class LabApp(App):
 
     def clear_window3(self,*args):
         self.window3_for_clear.empty()
-        self.window3_for_clear.append(self.all_participant_info())
+        self.window3_for_clear.append(self.participant_info())
+        self.window3_for_clear.append(self.experiment_info())
 
     def import_from_excel_listener(self,*args):
         file_name = self.import_file_name.get_value()
