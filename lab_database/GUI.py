@@ -583,7 +583,17 @@ class LabApp(App):
         """add a subject's details"""
         # access the relevant widgets and set the values in the DataFrame
         for label in widget_dict:
-            widget_dict[label].set_value(str(subj_data[label].values[0]))
+            widget = widget_dict[label]
+            value = subj_data[label].values[0]
+            if type(widget) in [gui.TextInput, gui.DropDown]:
+                if value is None:
+                    value = ''
+                value = str(value)
+                # widget.set_value(str(subj_data[label].values[0]))
+            elif type(widget) in [gui.SpinBox, gui.CheckBox]:
+                if label == 'year_of_birth' and value is True:
+                    value = int(value)
+            widget.set_value(value)
 
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
