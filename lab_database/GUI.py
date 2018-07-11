@@ -427,6 +427,8 @@ class LabApp(App):
     def participant_info(self):
         """Show or edit participants' info"""
         info_container = gui.VBox()
+        participant_container = gui.VBox()
+        experiment_container = gui.VBox()
         # Create participants' info table and add titles
         participant_table = gui.Table()
         row = gui.TableRow()
@@ -506,10 +508,12 @@ class LabApp(App):
         buttons_box.append(self.update_info)
 
         # Add widgets to the container
-        info_container.append(participant_label)
-        info_container.append(participant_table)
-        info_container.append(experiment_label)
-        info_container.append(experiment_table)
+        participant_container.append(participant_label)
+        participant_container.append(participant_table)
+        experiment_container.append(experiment_label)
+        experiment_container.append(experiment_table)
+        info_container.append(participant_container)
+        info_container.append(experiment_container)
         info_container.append(buttons_box)
 
         self.exp_info_dict['experiment'].set_on_change_listener(self.new_exp_click)
