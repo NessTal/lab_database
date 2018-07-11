@@ -542,7 +542,10 @@ class LabApp(App):
                       'spinbox': gui.SpinBox,
                       'drop_down': gui.DropDown,
                       'checkbox': gui.CheckBox}
-        box = types_dict[box_type]()  # create a widget
+        if self.row_titles_search[label] == 'Comments':
+            box = gui.TextInput(single_line=False)
+        else:
+            box = types_dict[box_type]()  # create a widget
         if box_type == 'spinbox':
             box.set_value('')
         elif box_type == 'drop_down':
