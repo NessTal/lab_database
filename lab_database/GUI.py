@@ -393,7 +393,7 @@ class LabApp(App):
         # Append to container
         window3_container.append(self.search_by_container())
         self.window3_for_clear = gui.VBox()
-        self.window3_for_clear.append(self.participant_info())
+        self.window3_for_clear.append(self.all_participant_info())
         window3_container.append(self.window3_for_clear)
         window3_container.append(self.import_from_excel())
         return window3_container  # edit_widget
@@ -426,9 +426,8 @@ class LabApp(App):
 
     def participant_info(self):
         """Show or edit participants' info"""
-        info_container = gui.VBox()
         participant_container = gui.VBox()
-        experiment_container = gui.VBox()
+
         # Create participants' info table and add titles
         participant_table = gui.Table()
         row = gui.TableRow()
@@ -459,6 +458,18 @@ class LabApp(App):
             row = self.add_row(row_title, self.info_dict)
             participant_table.add_child(str(id(row)), row)
 
+        # create labels:
+        participant_label = gui.Label('Participant')
+        participant_label.style['margin-top'] = '5px'
+        # Add widgets to the container
+        participant_container.append(participant_label)
+        participant_container.append(participant_table)
+
+        return participant_container
+
+    def experiment_info(self):
+        """show or edit an experiment's info"""
+        experiment_container = gui.VBox()
         # create experiment details table and add titles
         experiment_table = gui.Table()
         row = gui.TableRow()
@@ -490,11 +501,17 @@ class LabApp(App):
             experiment_table.add_child(str(id(row)), row)
 
         # Create labels
-        participant_label = gui.Label('Participant')
-        participant_label.style['margin-top'] = '5px'
         experiment_label = gui.Label('Experiment')
         experiment_label.style['margin-top'] = '5px'
+        # Add widgets to the container:
+        experiment_container.append(experiment_label)
+        experiment_container.append(experiment_table)
 
+        return experiment_container
+
+    def all_participant_info(self):
+        """contains participant info, experiment info and the relevant buttons"""
+        info_container = gui.VBox()
         # Create update and clear buttons
         self.update_info = gui.Button('Update Info')
         self.update_info.style['padding'] = '5px'
@@ -508,12 +525,8 @@ class LabApp(App):
         buttons_box.append(self.update_info)
 
         # Add widgets to the container
-        participant_container.append(participant_label)
-        participant_container.append(participant_table)
-        experiment_container.append(experiment_label)
-        experiment_container.append(experiment_table)
-        info_container.append(participant_container)
-        info_container.append(experiment_container)
+        info_container.append(self.participant_info())
+        info_container.append(self.experiment_info())
         info_container.append(buttons_box)
 
         self.exp_info_dict['experiment'].set_on_change_listener(self.new_exp_click)
@@ -723,7 +736,7 @@ class LabApp(App):
 
     def clear_window3(self,*args):
         self.window3_for_clear.empty()
-        self.window3_for_clear.append(self.participant_info())
+        self.window3_for_clear.append(self.all_participant_info())
 
     def import_from_excel_listener(self,*args):
         file_name = self.import_file_name.get_value()
