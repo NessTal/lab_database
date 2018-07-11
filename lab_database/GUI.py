@@ -674,7 +674,9 @@ class LabApp(App):
                 self.show_dialog("Enter the participant's ID")
             elif self.validate_int(subj_id, 'ID'):
                 try:
+                    print(f'to get_if_exist: {subj_id}, {exp_name}')
                     subj_data = get_if_exists(subj_id, exp_name)   # @@@@@
+                    print(f'from get_if_exists: {subj_data}')
                     self.add_subject_data(subj_data, self.exp_info_dict)
                 except KeyError:
                     self.clear_experiment()
@@ -766,6 +768,7 @@ class LabApp(App):
         file = import_path+file_name+'.csv'
         import_from_excel(file)
         self.refresh_exp_lists()
+        self.clear_window3()
         self.show_dialog(f'Imported from: {file}')
 
     def refresh_exp_lists(self, *args):
@@ -973,12 +976,11 @@ def start_scheduler():
 
 
 
-start_gui()
+#start_gui()
 
-"""
+
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
-"""

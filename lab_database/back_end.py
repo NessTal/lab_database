@@ -138,7 +138,7 @@ def get_if_exists(identifier, experiment = None):
         first, last = identifier.split(" ", 1)
         sub = Subject.select().where((Subject.first_name == first) & (Subject.last_name == last))
     else:
-        if type(identifier) == str:
+        if '@' in str(identifier):
             sub = Subject.select().where(Subject.mail == identifier)
         else:
             sub = Subject.select().where(Subject.subject_ID == identifier)
