@@ -603,10 +603,11 @@ class LabApp(App):
         if self.info_dict['subject_ID'].get_value() == '':
             self.show_dialog('Please enter the ID')
         elif self.validate_int(self.info_dict['subject_ID'].get_value(), 'ID'):
-            # enter the fields' values to the output dictionary
+            # enter the participant's values to the output dictionary
             subject_info = self.update_info_dictionary(subject_info, self.info_dict)
             # if an experiment was chosen, update the experiment fields as well
             if experiment_name is not None and experiment_name not in ['Experiments', 'Add New']:
+                # todo: handle KeyError ('participant_number'), reset experiments only
                 subject_info = self.update_info_dictionary(subject_info, self.exp_info_dict)
             if self.validate_range_fields(self.range_subject, subject_info):
                 print(f'to add_or_update: {subject_info}')
