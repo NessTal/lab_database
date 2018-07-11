@@ -393,8 +393,10 @@ class LabApp(App):
         # Append to container
         window3_container.append(self.search_by_container())
         self.window3_for_clear = gui.VBox()
+        self.experiment_for_clear = gui.VBox()
+        self.experiment_for_clear.append(self.experiment_info())
         self.window3_for_clear.append(self.participant_info())
-        self.window3_for_clear.append(self.experiment_info())
+        self.window3_for_clear.append(self.experiment_for_clear)
         window3_container.append(self.window3_for_clear)
         window3_container.append(self.participant_info_buttons())
         window3_container.append(self.import_from_excel())
@@ -737,7 +739,13 @@ class LabApp(App):
     def clear_window3(self,*args):
         self.window3_for_clear.empty()
         self.window3_for_clear.append(self.participant_info())
-        self.window3_for_clear.append(self.experiment_info())
+        self.clear_experiment()
+        self.window3_for_clear.append(self.experiment_for_clear)
+
+    def clear_experiment(self):
+        """clears all experiment fields"""
+        self.experiment_for_clear.empty()
+        self.experiment_for_clear.append(self.experiment_info())
 
     def import_from_excel_listener(self,*args):
         file_name = self.import_file_name.get_value()
