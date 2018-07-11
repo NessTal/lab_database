@@ -511,6 +511,7 @@ class LabApp(App):
         experiment_container.append(experiment_label)
         experiment_container.append(experiment_table)
 
+        self.exp_info_dict['experiment'].set_on_change_listener(self.new_exp_click)
         return experiment_container
 
     def participant_info_buttons(self):
@@ -531,7 +532,6 @@ class LabApp(App):
         # Add widgets to the container
         info_container.append(buttons_box)
 
-        self.exp_info_dict['experiment'].set_on_change_listener(self.new_exp_click)
         self.update_info.set_on_click_listener(self.update_subject_click)
         return info_container
 
@@ -566,6 +566,7 @@ class LabApp(App):
         return row
 
     def search_button_click(self, widget):
+        search_field_to_label = {'ID': 'subject_ID', 'e-mail': 'mail'}
         """search a user based on name/email/ID"""
         # Verify that the search fields are not empty, alert the user with dialog box
         # todo : test input
@@ -591,8 +592,16 @@ class LabApp(App):
                 else:
                     self.show_dialog('No subject found, you can add a new subject below')
                     self.clear_window3()
-                    self.info_dict[field].set_value(str(search_value))  # todo: it doesn't work for full name
-                # todo: clear all fields (other than the searched field)
+                    try:
+                        label = search_field_to_label[field]
+                        self.info_dict[label].set_value(str(search_value))
+                    except KeyError:
+                        if ' ' in search_value:
+                            first_name, last_name = search_value.split(' ', 1)
+                            self.info_dict['first_name'].set_value(first_name)
+                            self.info_dict['last_name'].set_value(last_name)
+                        else:
+                            self.info_dict['first_name'].set_value(search_value)
             # else, add the subject's fields to the table
             else:
                 self.clear_window3()
@@ -628,6 +637,7 @@ class LabApp(App):
             if experiment_name is not None and experiment_name not in ['Experiments', 'Add New']:
                 # todo: handle KeyError ('participant_number'), reset experiments only
                 subject_info = self.update_info_dictionary(subject_info, self.exp_info_dict)
+
             if self.validate_range_fields(self.range_subject, subject_info):
                 print(f'to add_or_update: {subject_info}')
                 add_or_update(subject_info)
@@ -659,12 +669,16 @@ class LabApp(App):
         if exp_name == 'Add New':
             self.enter_new_exp()
         elif exp_name not in [None, 'Experiments']:
-            subj_id = int(self.info_dict['subject_ID'].get_value())
+            subj_id = self.info_dict['subject_ID'].get_value()
             if subj_id == '':
                 self.show_dialog("Enter the participant's ID")
             elif self.validate_int(subj_id, 'ID'):
-                subj_data = get_if_exists(subj_id, exp_name)   # @@@@@
-                self.add_subject_data(subj_data, self.exp_info_dict)
+                try:
+                    subj_data = get_if_exists(subj_id, exp_name)   # @@@@@
+                    self.add_subject_data(subj_data, self.exp_info_dict)
+                except KeyError:
+                    self.clear_experiment()
+                    self.exp_info_dict['experiment'].set_value(exp_name)
                 # todo: check if there is data for this experiment+user and clear exp fields if not
 
     def enter_new_exp(self):
