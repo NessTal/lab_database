@@ -671,7 +671,7 @@ class LabApp(App):
         elif exp_name not in [None, 'Experiments']:
             subj_id = self.info_dict['subject_ID'].get_value()
             if subj_id == '':
-                self.show_dialog("Enter the participant's ID")
+                self.show_dialog("Please search for a participant first.")
             elif self.validate_int(subj_id, 'ID'):
                 try:
                     print(f'to get_if_exist: {subj_id}, {exp_name}')
