@@ -1,5 +1,5 @@
 switch_dict = {'gender': 'other',
-               'year_of_birth': 'range',
+               'date_of_birth': 'range',
                'dominant_hand': 'other',
                'reading_span': 'range',
                'send_mails': 'other',
@@ -15,8 +15,10 @@ class FiltSwitch:
                             'other': self.__filt_other}
 
     def __filt_range(self, key, val, df):
-        df = df.loc[list(df[key] >= val[0])]
-        df = df.loc[list(df[key] <= val[1])]
+        if val[0] != 'None':
+            df = df.loc[df[key] >= val[0]]
+        if val[1] != 'None':
+            df = df.loc[df[key] <= val[1]]
         return df
 
     def __filt_textinput(selfself, key, val, df):

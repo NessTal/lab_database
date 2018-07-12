@@ -11,7 +11,7 @@ import numpy as np
 class LabApp(App):
     def __init__(self, *args):
         self.exp_names = unique_experiments()
-        self.range_subject = {'hebrew_age':'Hebrew exposure age','year_of_birth':'Year of birth','reading_span':'Reading span'}
+        self.range_subject = {'hebrew_age':'Hebrew exposure age','reading_span':'Reading span'}
         self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
         self.textinput_subject = {'other_languages':'Other languages'}
         self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
@@ -21,7 +21,7 @@ class LabApp(App):
                                  'mail': 'e-mail',
                                  'other_languages': 'Other languages',
                                  'subject_notes': 'Comments'}
-        self.date_subject = dict()
+        self.date_subject = {'date_of_birth': 'Date of birth'}
         self.range_experiment = dict()
         self.dropdown_experiment = {'experiment': ['Experiments', 'Add New'] + self.exp_names}
         self.textinput_experiment = {'participant_number': 'Subject number',
@@ -29,13 +29,13 @@ class LabApp(App):
                                      'experiment_notes': 'Comments'}
         self.checkbox_experiment = {'participated': 'Participated'}
         self.date_experiment = {'date': 'Date'}
-        self.order_filters = ['hebrew_age', 'other_languages', 'year_of_birth','gender','dominant_hand','reading_span','send_mails']
-        self.order_subject = ['subject_ID', 'first_name', 'last_name', 'mail', 'gender', 'year_of_birth', 'dominant_hand',
+        self.order_filters = ['hebrew_age', 'other_languages', 'date_of_birth','gender','dominant_hand','reading_span','send_mails']
+        self.order_subject = ['subject_ID', 'first_name', 'last_name', 'mail', 'gender', 'date_of_birth', 'dominant_hand',
                               'hebrew_age', 'other_languages', 'reading_span','send_mails',
                               'subject_notes']
         self.order_experiment = ['experiment', 'participated', 'participant_number', 'date', 'exp_list', 'experiment_notes']
         self.row_titles_search = {'first_name': 'First name', 'last_name': 'Last name', 'subject_ID': 'ID',
-                                  'year_of_birth': 'Year of birth', 'dominant_hand': 'Dominant hand', 'mail': 'e-mail',
+                                  'date_of_birth': 'Date of birth', 'dominant_hand': 'Dominant hand', 'mail': 'e-mail',
                                   'subject_notes': 'Comments', 'send_mails': 'Agreed to receive emails',
                                   'reading_span': 'Reading span', 'gender': 'Gender',
                                   'hebrew_age': 'Hebrew exposure age', 'other_languages': 'Other languages',
@@ -43,7 +43,7 @@ class LabApp(App):
                                   'participated': 'Participated', 'experiment_notes': 'Comments', 'exp_list': 'List'}
 
         # lists containing the filter's widgets, for the function filter() to get their values:
-        self.filter_bio_widgets = {}
+        self.filter_sub_widgets = {}
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
         self.filter_export_file_name = []
@@ -107,8 +107,27 @@ class LabApp(App):
             box.append(fil_label)
             box.append(fil_from)
             box.append(fil_to)
-            self.filter_bio_widgets[filter] = [fil_from, fil_to]
+            self.filter_sub_widgets[filter] = [fil_from, fil_to]
             self.bio_widgets_for_display[filter] = box
+
+        # create date filters:
+        for filter, text in self.date_subject.items():
+            box = gui.HBox(width = 350, height = 50)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
+            fil_label = gui.Label(text,width = 300)
+            fil_from = gui.Date()
+            fil_from.set_value(None)
+            fil_lable_to = gui.Label('to')
+            fil_to = gui.Date()
+            fil_to.set_value(None)
+            box.append(fil_label)
+            box.append(fil_from)
+            box.append(fil_lable_to)
+            box.append(fil_to)
+            self.filter_sub_widgets[filter] = [fil_from, fil_to]
+            self.bio_widgets_for_display[filter] = box
+
 
         # create dropdown list filters:
         for filter, values in self.dropdown_subject.items():
@@ -119,7 +138,7 @@ class LabApp(App):
             box.style['padding-left'] = '10px'
             box.style['padding-right'] = '10px'
             box.append(fil)
-            self.filter_bio_widgets[filter] = fil
+            self.filter_sub_widgets[filter] = fil
             self.bio_widgets_for_display[filter] = box
 
         # create text input filters:
@@ -129,7 +148,7 @@ class LabApp(App):
             box.style['padding-left'] = '10px'
             box.style['padding-right'] = '10px'
             box.append(fil)
-            self.filter_bio_widgets[filter] = fil
+            self.filter_sub_widgets[filter] = fil
             self.bio_widgets_for_display[filter] = box
 
         # create checkbox filters:
@@ -139,8 +158,9 @@ class LabApp(App):
             box.style['padding-left'] = '10px'
             box.style['padding-right'] = '10px'
             box.append(fil)
-            self.filter_bio_widgets[filter] = fil
+            self.filter_sub_widgets[filter] = fil
             self.bio_widgets_for_display[filter] = box
+
 
         # position filters:
         subject_filters = gui.Table()
@@ -280,32 +300,37 @@ class LabApp(App):
             # bio filters:
             # range filters:
             for filter in self.range_subject.keys():
-                from_val = self.filter_bio_widgets[filter][0].get_value()
-                to_val = self.filter_bio_widgets[filter][1].get_value()
-                if from_val != '' :
-                    if to_val != '' :
-                        selected_filters[filter] = [int(from_val), int(to_val)]
+                from_val = self.filter_sub_widgets[filter][0].get_value()
+                to_val = self.filter_sub_widgets[filter][1].get_value()
+                if (from_val != '') or (to_val != ''):
+                    if from_val == '':
+                        selected_filters[filter] = ['None', int(to_val)]
+                    elif to_val == '':
+                        selected_filters[filter] = [int(from_val), 'None']
                     else:
-                        selected_filters[filter] = [int(from_val), max_range_value]
-                else:
-                    if to_val != '' :
-                        selected_filters[filter] = [0, int(to_val)]
+                        selected_filters[filter] = [int(from_val), int(to_val)]
+
+            for filter in self.date_subject.keys():
+                from_val = self.filter_sub_widgets[filter][0].get_value()
+                to_val = self.filter_sub_widgets[filter][1].get_value()
+                if (from_val != 'None') or (to_val != 'None'):
+                    selected_filters[filter] = [from_val,to_val]
 
             # drop down filters:
             for filter, text in self.dropdown_subject.items():
-                val = self.filter_bio_widgets[filter].get_value()
+                val = self.filter_sub_widgets[filter].get_value()
                 if (val != None) and (val != text[0]):
                     selected_filters[filter] = val
 
             # text input filters:
             for filter in self.textinput_subject.keys():
-                val = self.filter_bio_widgets[filter].get_value()
+                val = self.filter_sub_widgets[filter].get_value()
                 if val != '':
                     selected_filters[filter] = val
 
             # checkbox filters:
             for filter in self.checkbox_subject.keys():
-                val = self.filter_bio_widgets[filter].get_value()
+                val = self.filter_sub_widgets[filter].get_value()
                 if val == True:
                     selected_filters[filter] = val
 
@@ -330,7 +355,7 @@ class LabApp(App):
 
     def clear_filters(self,*args):
         self.filters_box.empty()
-        self.filter_bio_widgets = {}
+        self.filter_sub_widgets = {}
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
         self.filter_export_file_name = []
@@ -619,7 +644,7 @@ class LabApp(App):
                 value = str(value)
                 # widget.set_value(str(subj_data[label].values[0]))
             elif type(widget) in [gui.SpinBox, gui.CheckBox]:
-                if label == 'year_of_birth' and value is True:
+                if label == 'date_of_birth' and value is True:
                     value = int(value)
             widget.set_value(value)
 
@@ -951,7 +976,7 @@ class LabApp(App):
                         self.textinput_search[field_name] = field_name_for_display
             else:
                 dict_to_dicts[table_name][field_type][field_name] = field_name_for_display
-                if field_type == 'integer':
+                if (field_type == 'integer') or (field_type == 'date'):
                     switch_dict[field_name] = 'range'
                 else:
                     switch_dict[field_name] = 'other'
@@ -975,12 +1000,13 @@ def start_scheduler():
     scheduler.start()
 
 
+# @@@@@
+start_gui()
 
-#start_gui()
-
-
+"""
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
+"""
