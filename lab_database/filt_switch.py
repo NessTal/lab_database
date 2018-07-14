@@ -4,7 +4,11 @@ switch_dict = {'gender': 'other',
                'reading_span': 'range',
                'send_mails': 'other',
                'hebrew_age': 'range',
-               'other_languages': 'textinput'}
+               'other_languages': 'textinput',
+               'experiment_name': 'textinput',
+               'experimenter_name': 'textinput',
+               'experimenter_mail': 'textinput',
+               'duration': 'range'}
 
 
 class FiltSwitch:

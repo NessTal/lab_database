@@ -8,9 +8,8 @@ db = SqliteDatabase('./subjects.db')
 
 
 subject_fields = ['first_name', 'last_name','subject_ID','mail','date_of_birth','gender','hebrew_age','other_languages',
-                      'dominant_hand','reading_span','subject_notes','send_mails']
-experiment_fields = ['experiment_name','experimenter_name','experimenter_mail','fields','duration','methodology',
-                     'population','key_words','description']
+                  'dominant_hand','reading_span','subject_notes','send_mails']
+experiment_fields = ['experiment_name','experimenter_name','experimenter_mail','duration','fields','key_words','description']
 session_default_fields_before = ['experiment_name','participant_number','exp_list','date']
 session_default_fields_after = ['participated','session_notes']
 session_optional_fields = ['score1','score2','score3','score4']  #@@@@@@@
@@ -37,12 +36,12 @@ class Experiment(Model):
     experiment_name = CharField()
     experimenter_name = CharField(null=True)
     experimenter_mail = CharField(null=True)
-    fields = CharField(null=True)
     duration = IntegerField(null=True)
-    methodology = CharField(null=True)
-    population = CharField(null=True)
-    key_words = CharField(null=True)
     description = CharField(null=True)
+    fields = CharField(null=True)
+    key_words = CharField(null=True)
+    #methodology = CharField(null=True)
+    #population = CharField(null=True)
 
     class Meta:
         database = db # This model uses the "subjects.db" database.
@@ -79,9 +78,7 @@ def add_new_fields_to_tables():
             exec(table_name + '._meta.add_field(field_name,FloatField(null=True))')
         if row['field_type'] == 'boolean':
             exec(table_name + '._meta.add_field(field_name,BooleanField(null=True))')
-        if row['field_type'] == 'date':
-            exec(table_name + '._meta.add_field(field_name,DateField(null=True))')
-        if row['field_type'] == 'text':
+        else:
             exec(table_name + '._meta.add_field(field_name,CharField(null=True))')
 
         if table_name == 'Subject':
@@ -194,8 +191,7 @@ def add_or_update(dict):
         sub.save()
         exp_dict['subject'] = sub
         if 'experiment_name' in list(exp_dict.keys()):
-            exp = Experiment.create(**exp_dict)
-            exp.save()
+            exp = Experiment.select().where(Experiment.experiment_name == exp_dict['experiment_name']).get()
             ses_dict['subject'] = sub
             ses_dict['experiment'] = exp
             ses = Session.create(**ses_dict)
@@ -231,6 +227,11 @@ def get_experiment(experiment_name):
 
 def add_or_update_experiment(dict):
     exp = Experiment.select().where(Experiment.experiment_name == dict['experiment_name'])
+    dict1 = dict.copy()
+    for key, val in dict1.items():
+        if (val == '') or (val == 'None') or (val == 'nan'):
+            dict.pop(key)
+
     if exp.exists() == False:
         exp = Experiment.create(**dict)
         exp.save()
@@ -240,6 +241,7 @@ def add_or_update_experiment(dict):
             setattr(exp, key, val)
         exp.save()
     tables.table_experiments = get_table_experiments()
+    export_all_to_csv()
 
 
 def filt(filt_dict, exp_list = 0):
@@ -271,12 +273,23 @@ def filt(filt_dict, exp_list = 0):
         ses = ses.loc[ses['experiment_name'] == filt_dict['exp_include'][0]]
         ses = ses.loc[ses['subject_ID'].isin(sub['subject_ID'])]
         exp_fields = tables.table_experiments.loc[tables.table_experiments['experiment_name'] == filt_dict['exp_include'][0]]
-        exp_fields = exp_fields['fields'].values[0].split(', ')
-        result = ses[session_default_fields_before + subject_fields + session_default_fields_after + exp_fields]
+        if exp_fields['fields'].values[0] != None:
+            exp_fields = exp_fields['fields'].values[0].split(', ')
+            result = ses[session_default_fields_before + subject_fields + session_default_fields_after + exp_fields]
+        else:
+            result = ses[session_default_fields_before + subject_fields + session_default_fields_after]
     else:
         result = sub
     return result
 
+def filt_experiments(filt_exp_dict):
+    result = tables.table_experiments
+    if 'key_words' in filt_exp_dict.keys():
+        for key_word in filt_exp_dict.pop('key_words'):
+            result = result.loc[result['key_words'].str.contains(key_word) == True]
+    for key, val in filt_exp_dict.items():
+        result = FiltSwitch().filter_by_key(key, val, result)
+    return result
 
 def experiment_tomorrow_mails():
     df_ses = tables.table_for_emails
@@ -315,18 +328,16 @@ def import_from_excel(file):
 
 
 def add_new_field(table_name,field_name,field_type):
-    dict = {'integer': FloatField(null=True), 'boolean': BooleanField(null=True), 'date': DateField(null=True), 'text': CharField(null=True)}
+    dict = {'integer': FloatField(null=True), 'boolean': BooleanField(null=True), 'date': CharField(null=True), 'text': CharField(null=True)}
     field = dict[field_type]
 
     migrator = SqliteMigrator(db)
     migrate(migrator.add_column(table_name,field_name,field))
 
     if field_type == 'integer':
-        exec(table_name + '._meta.add_field(field_name,IntegerField(null=True))')
+        exec(table_name + '._meta.add_field(field_name,FloatField(null=True))')
     elif field_type == 'boolean':
         exec(table_name + '._meta.add_field(field_name,BooleanField(null=True))')
-    elif field_type == 'date':
-        exec(table_name + '._meta.add_field(field_name,DateField(null=True))')
     else:
         exec(table_name + '._meta.add_field(field_name,CharField(null=True))')
 
@@ -338,6 +349,7 @@ def add_new_field(table_name,field_name,field_type):
         session_optional_fields.append(field_name)
 
     tables.table_subjects = get_table_subjects()
+    tables.table_experiments = get_table_experiments()
     tables.table_for_emails = get_table_sessions()
     tables.table_sessions = tables.table_for_emails[session_default_fields_before + subject_fields +
                                                     session_default_fields_after + session_optional_fields]

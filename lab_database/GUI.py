@@ -14,26 +14,34 @@ class LabApp(App):
         self.range_subject = {'hebrew_age':'Hebrew exposure age','reading_span':'Reading span'}
         self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
         self.textinput_subject = {'other_languages':'Other languages'}
-        self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
-        self.textinput_search = {'subject_ID': 'ID',
+        self.textinput_subject_no_filter = {'subject_ID': 'ID',
                                  'first_name': 'First name',
                                  'last_name': 'Last name',
                                  'mail': 'e-mail',
-                                 'other_languages': 'Other languages',
                                  'subject_notes': 'Comments'}
+        self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
         self.date_subject = {'date_of_birth': 'Date of birth'}
-        self.range_experiment = dict()
-        self.dropdown_experiment = {'experiment': ['Experiments', 'Add New'] + self.exp_names}
-        self.textinput_experiment = {'participant_number': 'Subject number',
+        self.range_session = dict()
+        self.dropdown_session = {'experiment': ['Experiments'] + self.exp_names}
+        self.textinput_session = {'participant_number': 'Subject number',
                                      'exp_list': 'List',
                                      'experiment_notes': 'Comments'}
-        self.checkbox_experiment = {'participated': 'Participated'}
-        self.date_experiment = {'date': 'Date'}
+        self.checkbox_session = {'participated': 'Participated'}
+        self.date_session = {'date': 'Date'}
+        self.range_experiment = {'duration': 'Duration'}
+        self.dropdown_experiment = {}
+        self.textinput_experiment = {'experiment_name': 'Experiment name','experimenter_name': 'Experimenter',
+                                     'experimenter_mail': 'E-mail address','description': 'Description'}
+        self.checkbox_experiment = {}
+        self.date_experiment = {}
+
         self.order_filters = ['hebrew_age', 'other_languages', 'date_of_birth','gender','dominant_hand','reading_span','send_mails']
         self.order_subject = ['subject_ID', 'first_name', 'last_name', 'mail', 'gender', 'date_of_birth', 'dominant_hand',
                               'hebrew_age', 'other_languages', 'reading_span','send_mails',
                               'subject_notes']
-        self.order_experiment = ['experiment', 'participated', 'participant_number', 'date', 'exp_list', 'experiment_notes']
+        self.order_session = ['experiment', 'participated', 'participant_number', 'date', 'exp_list', 'experiment_notes']
+        self.order_experiment = ['experiment_name','experimenter_name','experimenter_mail','duration','description']
+
         self.row_titles_search = {'first_name': 'First name', 'last_name': 'Last name', 'subject_ID': 'ID',
                                   'date_of_birth': 'Date of birth', 'dominant_hand': 'Dominant hand', 'mail': 'e-mail',
                                   'subject_notes': 'Comments', 'send_mails': 'Agreed to receive emails',
@@ -49,11 +57,23 @@ class LabApp(App):
         self.filter_export_file_name = []
         self.bio_widgets_for_display = {}
         self.new_field_widgets = []
+        self.filter_experiment_widgets = {}
+        self.filter_experiment_widgets_for_display = {}
+
+        self.edit_experiment_widgets = {}
+        self.edit_experiment_boxes_for_display = {}
+        self.optional_fields_widgets = {}
+        self.key_words_widgets = {}
+        self.filter_key_words_widgets = {}
+
+        self.key_words_table = gui.ListView()
+        self.filter_key_words_table = gui.ListView()
 
         self.dialog = gui.GenericDialog(width='470', height='150')
         self.filter_results = pd.DataFrame()
+        self.filter_experiments_results = pd.DataFrame()
 
-        # attributes for the Edit tab
+        # attributes for the Edit subject tab
         self.info_dict = dict()
         self.search_by = ['ID', 'e-mail', 'Full Name']
         self.exp_info_dict = dict()
@@ -69,8 +89,9 @@ class LabApp(App):
         self.new_fields_to_dicts()
         container = gui.TabBox()
         container.add_tab(self.filters_tab(), 'Filters', 'Filters')
-        container.add_tab(self.edit_widget(), 'Add or Edit Subjects', 'Add or Edit Subjects')
-        container.add_tab(self.new_field_tab(), 'Add New Fields', 'Add New Fields')
+        container.add_tab(self.edit_subjects_tab(), 'Add or Edit Subjects', 'Add or Edit Subjects')
+        container.add_tab(self.experiments_tab(), 'Experiments', 'Experiments')
+        container.add_tab(self.edit_experiments_tab(), 'Add or Edit Experiments', 'Add or Edit Experiments')
         return container
 
     """
@@ -96,70 +117,20 @@ class LabApp(App):
         creates filters for the subject's information.
         also calls for 'filters_tab_buttons' and appends the buttons box.
         """
-        # create range filters:
         for filter, text in self.range_subject.items():
-            box = gui.HBox(width = 350, height = 50)
-            box.style['padding-left'] = '10px'
-            box.style['padding-right'] = '10px'
-            fil_label = gui.Label(text,width = 300)
-            fil_from = gui.TextInput(hint='from',height=18)
-            fil_to = gui.TextInput(hint='to',height=18)
-            box.append(fil_label)
-            box.append(fil_from)
-            box.append(fil_to)
-            self.filter_sub_widgets[filter] = [fil_from, fil_to]
-            self.bio_widgets_for_display[filter] = box
+            self.create_range_filter(filter,text,self.filter_sub_widgets,self.bio_widgets_for_display)
 
-        # create date filters:
         for filter, text in self.date_subject.items():
-            box = gui.HBox(width = 350, height = 50)
-            box.style['padding-left'] = '10px'
-            box.style['padding-right'] = '10px'
-            fil_label = gui.Label(text,width = 300)
-            fil_from = gui.Date()
-            fil_from.set_value(None)
-            fil_lable_to = gui.Label('to')
-            fil_to = gui.Date()
-            fil_to.set_value(None)
-            box.append(fil_label)
-            box.append(fil_from)
-            box.append(fil_lable_to)
-            box.append(fil_to)
-            self.filter_sub_widgets[filter] = [fil_from, fil_to]
-            self.bio_widgets_for_display[filter] = box
+            self.create_date_filter(filter,text,self.filter_sub_widgets,self.bio_widgets_for_display)
 
-
-        # create dropdown list filters:
         for filter, values in self.dropdown_subject.items():
-            fil = gui.DropDown(height=20)
-            for idx, val in enumerate(values):
-                fil.add_child(idx,gui.DropDownItem(val))
-            box = gui.HBox(width = 350, height = 50)
-            box.style['padding-left'] = '10px'
-            box.style['padding-right'] = '10px'
-            box.append(fil)
-            self.filter_sub_widgets[filter] = fil
-            self.bio_widgets_for_display[filter] = box
+            self.create_dropdown_filter(filter,values,self.filter_sub_widgets,self.bio_widgets_for_display)
 
-        # create text input filters:
         for filter, text in self.textinput_subject.items():
-            fil = gui.TextInput(hint=text,height=18)
-            box = gui.HBox(width = 350, height = 50)
-            box.style['padding-left'] = '10px'
-            box.style['padding-right'] = '10px'
-            box.append(fil)
-            self.filter_sub_widgets[filter] = fil
-            self.bio_widgets_for_display[filter] = box
+            self.create_textinput_filter(filter,text,self.filter_sub_widgets,self.bio_widgets_for_display)
 
-        # create checkbox filters:
         for filter, text in self.checkbox_subject.items():
-            fil = gui.CheckBoxLabel(text,height=18)
-            box = gui.HBox(width = 350, height = 50)
-            box.style['padding-left'] = '10px'
-            box.style['padding-right'] = '10px'
-            box.append(fil)
-            self.filter_sub_widgets[filter] = fil
-            self.bio_widgets_for_display[filter] = box
+            self.create_checkbox_filter(filter,text,self.filter_sub_widgets,self.bio_widgets_for_display)
 
 
         # position filters:
@@ -179,6 +150,66 @@ class LabApp(App):
         subject_filters.add_child(len(self.order_filters)+1,row)
 
         return subject_filters
+
+
+    def create_range_filter(self,filter, text, widgets_dict, widgets_for_display_dict):
+        box = gui.HBox(width = 350, height = 50)
+        box.style['padding-left'] = '10px'
+        box.style['padding-right'] = '10px'
+        fil_label = gui.Label(text,width = 300)
+        fil_from = gui.TextInput(hint='from',height=18)
+        fil_to = gui.TextInput(hint='to',height=18)
+        box.append(fil_label)
+        box.append(fil_from)
+        box.append(fil_to)
+        widgets_dict[filter] = [fil_from, fil_to]
+        widgets_for_display_dict[filter] = box
+
+    def create_date_filter(self,filter,text,widgets_dict,widgets_for_display_dict):
+        box = gui.HBox(width = 350, height = 50)
+        box.style['padding-left'] = '10px'
+        box.style['padding-right'] = '10px'
+        fil_label = gui.Label(text,width = 300)
+        fil_from = gui.Date()
+        fil_from.set_value(None)
+        fil_lable_to = gui.Label('to')
+        fil_to = gui.Date()
+        fil_to.set_value(None)
+        box.append(fil_label)
+        box.append(fil_from)
+        box.append(fil_lable_to)
+        box.append(fil_to)
+        widgets_dict[filter] = [fil_from, fil_to]
+        widgets_for_display_dict[filter] = box
+
+    def create_dropdown_filter(self,filter,values,widgets_dict,widgets_for_display_dict):
+        fil = gui.DropDown(height=20)
+        for idx, val in enumerate(values):
+            fil.add_child(idx,gui.DropDownItem(val))
+        box = gui.HBox(width = 350, height = 50)
+        box.style['padding-left'] = '10px'
+        box.style['padding-right'] = '10px'
+        box.append(fil)
+        widgets_dict[filter] = fil
+        widgets_for_display_dict[filter] = box
+
+    def create_textinput_filter(self,filter,text,widgets_dict,widgets_for_display_dict):
+        fil = gui.TextInput(hint=text,height=18)
+        box = gui.HBox(width = 350, height = 50)
+        box.style['padding-left'] = '10px'
+        box.style['padding-right'] = '10px'
+        box.append(fil)
+        widgets_dict[filter] = fil
+        widgets_for_display_dict[filter] = box
+
+    def create_checkbox_filter(self,filter,text,widgets_dict,widgets_for_display_dict):
+        fil = gui.CheckBoxLabel(text,height=18)
+        box = gui.HBox(width = 350, height = 50)
+        box.style['padding-left'] = '10px'
+        box.style['padding-right'] = '10px'
+        box.append(fil)
+        widgets_dict[filter] = fil
+        widgets_for_display_dict[filter] = box
 
 
     def filters_tab_buttons(self):
@@ -409,23 +440,24 @@ class LabApp(App):
         print(self.mail_widgets[0].get_value())
         print(self.mail_widgets[1].get_value())
 
+
     """
-    Edit tab
+    Edit subjects tab
     """
 
-    def edit_widget(self):
-        window3_container = gui.VBox()
+    def edit_subjects_tab(self):
+        edit_subjects_tab = gui.VBox()
         # Append to container
-        window3_container.append(self.search_by_container())
+        edit_subjects_tab.append(self.search_by_container())
         self.window3_for_clear = gui.VBox()
         self.experiment_for_clear = gui.VBox()
         self.experiment_for_clear.append(self.experiment_info())
         self.window3_for_clear.append(self.participant_info())
         self.window3_for_clear.append(self.experiment_for_clear)
-        window3_container.append(self.window3_for_clear)
-        window3_container.append(self.participant_info_buttons())
-        window3_container.append(self.import_from_excel())
-        return window3_container  # edit_widget
+        edit_subjects_tab.append(self.window3_for_clear)
+        edit_subjects_tab.append(self.participant_info_buttons())
+        edit_subjects_tab.append(self.import_from_excel())
+        return edit_subjects_tab
 
     def search_by_container(self):
         """create search by drop down, input and button"""
@@ -469,7 +501,8 @@ class LabApp(App):
         participant_table.add_child(str(id(row)), row)
 
         widgets_and_inputs = [
-            (self.textinput_search, 'input'),
+            (self.textinput_subject, 'input'),
+            (self.textinput_subject_no_filter, 'input'),
             (self.dropdown_subject, 'drop_down'),
             (self.range_subject, 'spinbox'),
             (self.date_subject, 'date'),
@@ -511,11 +544,11 @@ class LabApp(App):
         experiment_table.add_child(str(id(row)), row)
 
         exp_widgets_and_inputs = [
-            (self.textinput_experiment, 'input'),
-            (self.dropdown_experiment, 'drop_down'),
-            (self.range_experiment, 'spinbox'),
-            (self.date_experiment, 'date'),
-            (self.checkbox_experiment, 'checkbox')
+            (self.textinput_session, 'input'),
+            (self.dropdown_session, 'drop_down'),
+            (self.range_session, 'spinbox'),
+            (self.date_session, 'date'),
+            (self.checkbox_session, 'checkbox')
         ]
         # create the widgets and add them to a dictionary
         for widget in exp_widgets_and_inputs:
@@ -525,7 +558,7 @@ class LabApp(App):
                 self.add_search_widget(label, widget_type, widget_dictionary, self.exp_info_dict)
 
         # add the experiments table rows
-        for row_title in self.order_experiment:
+        for row_title in self.order_session:
             row = self.add_row(row_title, self.exp_info_dict)
             experiment_table.add_child(str(id(row)), row)
 
@@ -703,7 +736,7 @@ class LabApp(App):
             elif self.validate_int(subj_id, 'ID'):
                 try:
                     print(f'to get_if_exist: {subj_id}, {exp_name}')
-                    subj_data = get_if_exists(subj_id, exp_name)   # @@@@@
+                    subj_data = get_if_exists(subj_id, exp_name)
                     print(f'from get_if_exists: {subj_data}')
                     self.add_subject_data(subj_data, self.exp_info_dict)
                 except KeyError:
@@ -805,13 +838,468 @@ class LabApp(App):
         self.filter_exp_no_widgets = []
         self.clear_filters()
 
+
     """
-    Add new fields tab
+    Experiments tab
     """
-    def new_field_tab(self):
+    def experiments_tab(self):
+        experiments_tab = gui.VBox()
+
+        experiment_filters = gui.HBox()
+        self.experiment_filters_left = gui.Table()
+        self.experiment_filters_left.style['margin'] = '60px'
+        experiment_filters.append(self.experiment_filters_left)
+        self.build_experiment_filters_left()
+        experiment_filters.append(self.key_words('filter'))
+        experiments_tab.append(experiment_filters)
+
+        self.filtered_experiments_table = gui.TableWidget(0,0)
+        experiments_tab.append(self.filtered_experiments_table)
+        return experiments_tab
+
+
+    def build_experiment_filters_left(self):
+        for filter, text in self.range_experiment.items():
+            self.create_range_filter(filter,text,self.filter_experiment_widgets, self.filter_experiment_widgets_for_display)
+
+        for filter, text in self.date_experiment.items():
+            self.create_date_filter(filter,text,self.filter_experiment_widgets, self.filter_experiment_widgets_for_display)
+
+        for filter, values in self.dropdown_experiment.items():
+            self.create_dropdown_filter(filter,values,self.filter_experiment_widgets, self.filter_experiment_widgets_for_display)
+
+        for filter, text in self.textinput_experiment.items():
+            if filter != 'description':
+                self.create_textinput_filter(filter,text,self.filter_experiment_widgets, self.filter_experiment_widgets_for_display)
+
+        for filter, text in self.checkbox_experiment.items():
+            self.create_checkbox_filter(filter,text,self.filter_experiment_widgets, self.filter_experiment_widgets_for_display)
+
+
+        # position filters:
+        for idx, filter in enumerate(self.order_experiment[:-1]):
+            row = gui.TableRow()
+            item = gui.TableItem()
+            item.add_child(0,self.filter_experiment_widgets_for_display[filter])
+            row.add_child(0,item)
+            self.experiment_filters_left.add_child(idx,row)
+
+        # add buttons:
+        clear_filters_experiment = gui.Button('Clear')
+        clear_filters_experiment.set_on_click_listener(self.clear_experiments_filters)
+        clear_filters_experiment.style['padding-left'] = '10px'
+        clear_filters_experiment.style['padding-right'] = '10px'
+
+        filter_experiment = gui.Button('Filter')
+        filter_experiment.set_on_click_listener(self.filter_experiments)
+        filter_experiment.style['padding-left'] = '10px'
+        filter_experiment.style['padding-right'] = '10px'
+
+        buttons_box = gui.HBox()
+        buttons_box.append(clear_filters_experiment)
+        buttons_box.append(filter_experiment)
+
+        row = gui.TableRow()
+        item = gui.TableItem()
+        item.add_child(0,buttons_box)
+        row.add_child(0,item)
+        self.experiment_filters_left.add_child(len(self.order_experiment),row)
+
+
+    def filter_experiments(self,*args):
+        selected_filters = {}
+        key_words = []
+        for key_word, widget in self.filter_key_words_widgets.items():
+            if widget.get_value() == True:
+                key_words.append(key_word)
+        if len(key_words) > 0:
+            selected_filters['key_words'] = key_words
+
+        # range filters:
+        for filter in self.range_experiment.keys():
+            from_val = self.filter_experiment_widgets[filter][0].get_value()
+            to_val = self.filter_experiment_widgets[filter][1].get_value()
+            if (from_val != '') or (to_val != ''):
+                if from_val == '':
+                    selected_filters[filter] = ['None', int(to_val)]
+                elif to_val == '':
+                    selected_filters[filter] = [int(from_val), 'None']
+                else:
+                    selected_filters[filter] = [int(from_val), int(to_val)]
+
+        for filter in self.date_experiment.keys():
+            from_val = self.filter_experiment_widgets[filter][0].get_value()
+            to_val = self.filter_experiment_widgets[filter][1].get_value()
+            if (from_val != 'None') or (to_val != 'None'):
+                selected_filters[filter] = [from_val,to_val]
+
+        # drop down filters:
+        for filter, text in self.dropdown_experiment.items():
+            val = self.filter_experiment_widgets[filter].get_value()
+            if (val != None) and (val != text[0]):
+                selected_filters[filter] = val
+
+        # text input filters:
+        for filter in self.textinput_experiment.keys():
+            if filter != 'description':
+                val = self.filter_experiment_widgets[filter].get_value()
+                if val != '':
+                    selected_filters[filter] = val
+
+        # checkbox filters:
+        for filter in self.checkbox_experiment.keys():
+            val = self.filter_experiment_widgets[filter].get_value()
+            if val == True:
+                selected_filters[filter] = val
+
+        # send selected filters (dict) to filt and receive a data frame with the filtered results:
+        print(f'selected experiment filters: {selected_filters}')
+        self.filter_experiments_results = filt_experiments(selected_filters)
+        results_list_of_tuples = []
+        titles = list(self.filter_experiments_results.columns.str.capitalize().str.replace('_',' '))
+        results_list_of_tuples.append(tuple(titles))
+        self.filtered_experiments_table.style['margin-top'] = '30px'
+        for idx, row in self.filter_experiments_results.iterrows():
+            results_list_of_tuples.append(tuple(row))
+        self.filtered_experiments_table.empty()
+        self.filtered_experiments_table.append_from_list(results_list_of_tuples,fill_title=True)
+        for key,item in self.filtered_experiments_table.get_child('0').children.items():
+            self.filtered_experiments_table.get_child('0').get_child(key).style['padding-left'] = '5px'
+            self.filtered_experiments_table.get_child('0').get_child(key).style['padding-right'] = '5px'
+            self.filtered_experiments_table.get_child('0').get_child(key).style['padding-top'] = '3px'
+            self.filtered_experiments_table.get_child('0').get_child(key).style['padding-bottom'] = '3px'
+
+
+    def clear_experiments_filters(self,*args):
+        self.experiment_filters_left.empty()
+        self.build_experiment_filters_left()
+        self.filter_key_words_table.empty()
+        self.build_key_words_table('filter')
+
+
+
+    """
+    Edit experiments tab
+    """
+    def edit_experiments_tab(self):
         """
         creates the Add New fields tab.
         """
+        edit_experiments_tab = gui.HBox()
+        edit_experiments_tab.append(self.edit_experiments_left())
+        edit_experiments_tab.append(self.optional_fields())
+        edit_experiments_tab.append(self.key_words('edit'))
+        return edit_experiments_tab
+
+
+    def edit_experiments_left(self):
+        edit_experiments_left = gui.VBox()
+        edit_experiments_left.style['margin-bottom'] = '50px'
+
+        search_experiment_box = gui.HBox(width=450, height=40)
+        search_experiment_box.style['margin-top'] = '20px'
+        search_experiment_label = gui.Label('Experiment name',width=200)
+        search_experiment_label.style['text-align'] = 'left'
+        search_experiment_input = gui.TextInput(height=18)
+        self.edit_experiment_widgets['search'] = search_experiment_input
+        search_experiment_button = gui.Button('Search',width=100)
+        search_experiment_button.style['margin-left'] = '10px'
+        search_experiment_button.set_on_click_listener(self.search_experiment)
+        search_experiment_box.append(search_experiment_label)
+        search_experiment_box.append(search_experiment_input)
+        search_experiment_box.append(search_experiment_button)
+        edit_experiments_left.append(search_experiment_box)
+
+        self.edit_experiment_table = gui.Table()
+        self.edit_experiment_table.style['margin'] = '20px'
+        self.build_edit_experiment_table()
+        edit_experiments_left.append(self.edit_experiment_table)
+
+        buttons_box = gui.HBox()
+        update_experiment_button = gui.Button('Update experiment')
+        update_experiment_button.style['padding-right'] = '10px'
+        update_experiment_button.style['padding-left'] = '10px'
+        update_experiment_button.style['margin-left'] = '20px'
+        update_experiment_button.set_on_click_listener(self.update_experiment)
+        clear_button = gui.Button('Clear')
+        clear_button.style['padding-right'] = '10px'
+        clear_button.style['padding-left'] = '10px'
+        clear_button.set_on_click_listener(self.clear_edit_experiment)
+        buttons_box.append(clear_button)
+        buttons_box.append(update_experiment_button)
+        edit_experiments_left.append(buttons_box)
+        return edit_experiments_left
+
+
+    def search_experiment(self, *args):
+        exp = get_experiment(self.edit_experiment_widgets['search'].get_value())
+        if len(exp) == 0:
+            self.show_dialog('No experiment found, you can add a new experiment below')
+            self.clear_edit_experiment()
+            self.edit_experiment_widgets['experiment_name'].set_text(self.edit_experiment_widgets['search'].get_value())
+        else:
+            exp_dict = exp.to_dict(orient='list')
+            self.edit_experiment_widgets['experiment_name'].set_text(exp_dict.pop('experiment_name')[0])
+            for key, val in exp_dict.items():
+                val = val[0]
+                if (key == 'fields') or (key == 'key_words'):
+                    self.set_checkboxes_values(key, val)
+                else:
+                    if val != None:
+                        self.edit_experiment_widgets[key].set_value(val)
+
+
+    def set_checkboxes_values(self,key, selected):
+        keys_dict = {'fields':[self.optional_fields_table, self.build_optional_fields_table,self.optional_fields_widgets],
+                     'key_words': [self.key_words_table, self.build_key_words_table, self.key_words_widgets]}
+        keys_dict[key][0].empty()
+        if key == 'key_words':
+            keys_dict[key][1]('edit')
+        else:
+            keys_dict[key][1]()
+        if selected != None:
+            selected = selected.split(', ')
+            for item in selected:
+                keys_dict[key][2][item].set_value(True)
+
+
+    def build_edit_experiment_table(self):
+        # create text input fields:
+        for filter, text in self.textinput_experiment.items():
+            box = gui.HBox(width = 350, height = 40)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
+            fil_label = gui.Label(text, width= 170)
+            fil_label.style['text-align'] = 'left'
+            box.append(fil_label)
+            if filter == 'experiment_name':
+                fil_input = gui.Label('')
+                fil_input_box = gui.HBox(width=338, height=22)
+                fil_input_box.style['background-color'] = 'rgb(217,236,253)'
+                fil_input_box.style['padding'] = '2px'
+                fil_input_box.append(fil_input)
+                box.append(fil_input_box)
+            else:
+                fil_input = gui.TextInput(height=18)
+                box.append(fil_input)
+            self.edit_experiment_widgets[filter] = fil_input
+            self.edit_experiment_boxes_for_display[filter] = box
+
+        # create range fields:
+        for filter, text in self.range_experiment.items():
+            box = gui.HBox(width = 350, height = 40)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
+            fil_label = gui.Label(text, width= 170)
+            fil_label.style['text-align'] = 'left'
+            fil_input = gui.SpinBox(height=18)
+            fil_input.set_value('')
+            box.append(fil_label)
+            box.append(fil_input)
+            self.edit_experiment_widgets[filter] = fil_input
+            self.edit_experiment_boxes_for_display[filter] = box
+
+        # create date fields:
+        for filter, text in self.date_experiment.items():
+            box = gui.HBox(width = 350, height = 40)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
+            fil_label = gui.Label(text, width= 170)
+            fil_label.style['text-align'] = 'left'
+            fil_input = gui.Date()
+            fil_input.set_value(None)
+            box.append(fil_label)
+            box.append(fil_input)
+            self.edit_experiment_widgets[filter] = fil_input
+            self.edit_experiment_boxes_for_display[filter] = box
+
+        # create dropdown list fields:
+        for filter, values in self.dropdown_experiment.items():
+            box = gui.HBox(width = 350, height = 40)
+            fil = gui.DropDown(height=20)
+            for idx, val in enumerate(values):
+                fil.add_child(idx,gui.DropDownItem(val))
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
+            box.append(fil)
+            self.edit_experiment_widgets[filter] = fil
+            self.edit_experiment_boxes_for_display[filter] = box
+
+        # create checkbox fields:
+        for filter, text in self.checkbox_experiment.items():
+            box = gui.HBox(width = 350, height = 40)
+            fil = gui.CheckBoxLabel(text,height=18)
+            box.style['padding-left'] = '10px'
+            box.style['padding-right'] = '10px'
+            box.append(fil)
+            self.edit_experiment_widgets[filter] = fil
+            self.edit_experiment_boxes_for_display[filter] = box
+
+        # position fields:
+        for idx, field in enumerate(self.order_experiment):
+            row = gui.TableRow()
+            item = gui.TableItem()
+            item.add_child(0,self.edit_experiment_boxes_for_display[field])
+            row.add_child(0,item)
+            self.edit_experiment_table.add_child(idx,row)
+
+
+    def clear_edit_experiment(self, *args):
+        self.edit_experiment_table.empty()
+        self.build_edit_experiment_table()
+        self.key_words_table.empty()
+        self.build_key_words_table('edit')
+        self.optional_fields_table.empty()
+        self.build_optional_fields_table()
+
+
+    def update_experiment(self, *args):
+        dict = {}
+        dict['experiment_name'] = self.edit_experiment_widgets['experiment_name'].get_text()
+        for key,val in self.edit_experiment_widgets.items():
+            if (key != 'search') and (key != 'experiment_name'):
+                dict[key] = val.get_value()
+        dict['fields'] = self.checkboxes_values_to_string('fields')
+        dict['key_words'] = self.checkboxes_values_to_string('key_words')
+        add_or_update_experiment(dict)
+        self.refresh_exp_lists()
+        self.show_dialog('The experiment was updated')
+
+
+    def checkboxes_values_to_string(self,key1):
+        keys_dict = {'fields':self.optional_fields_widgets,
+                     'key_words': self.key_words_widgets}
+        selected = []
+        for key, val in keys_dict[key1].items():
+            if val.get_value() == True:
+                selected.append(key)
+        selected = ', '.join(selected)
+        return selected
+
+
+    def optional_fields(self):
+        optional_fields = gui.VBox(height=500)
+        lable = gui.Label('Select optional fields:')
+        lable.style['margin-top'] = '25px'
+        lable.style['margin-bottom'] = '15px'
+        optional_fields.append(lable)
+        self.optional_fields_table = gui.ListView()
+        optional_fields.append(self.optional_fields_table)
+        self.build_optional_fields_table()
+        add_field_button = gui.Button('Add new field')
+        add_field_button.style['margin-top'] = '20px'
+        add_field_button.style['margin-bottom'] = '20px'
+        add_field_button.style['padding-right'] = '10px'
+        add_field_button.style['padding-left'] = '10px'
+        add_field_button.set_on_click_listener(self.show_new_field_dialog)
+        optional_fields.append(add_field_button)
+        return optional_fields
+
+
+    def build_optional_fields_table(self, *args):
+        for opt_field in session_optional_fields:
+            box = gui.HBox()
+            label = gui.Label(opt_field.capitalize().replace('_',' '),width=150)
+            label.style['text-align'] = 'left'
+            label.style['margin'] = '3px'
+            checkbox = gui.CheckBox()
+            checkbox.style['margin'] = '3px'
+            box.append(checkbox)
+            box.append(label)
+            self.optional_fields_widgets[opt_field] = checkbox
+            item = gui.TableItem()
+            item.append(box)
+            row = gui.TableRow()
+            row.append(item)
+            self.optional_fields_table.append(row)
+
+
+    def key_words(self,tab):
+        table_widget_dict = {'edit': self.key_words_table, 'filter': self.filter_key_words_table}
+        if tab == 'edit':
+            key_words = gui.VBox(height=500)
+        else:
+            key_words = gui.VBox(height=400)
+        key_words.style['margin-bottom'] = '40px'
+        lable = gui.Label('Select key words:')
+        lable.style['margin-top'] = '25px'
+        lable.style['margin-bottom'] = '15px'
+        key_words.append(lable)
+        key_words.append(table_widget_dict[tab])
+        self.build_key_words_table(tab)
+        if tab == 'edit':
+            add_key_word_button = gui.Button('Add new key word')
+            add_key_word_button.style['margin-top'] = '20px'
+            add_key_word_button.style['margin-bottom'] = '20px'
+            add_key_word_button.style['padding-right'] = '10px'
+            add_key_word_button.style['padding-left'] = '10px'
+            add_key_word_button.set_on_click_listener(self.show_new_key_word_dialog)
+            key_words.append(add_key_word_button)
+        return key_words
+
+
+    def build_key_words_table(self,tab):
+        widgets_holder_dict = {'edit': [self.key_words_widgets, self.key_words_table],
+                               'filter': [self.filter_key_words_widgets, self.filter_key_words_table]}
+        df = pd.read_csv('key_words.csv',header=None)
+        for idx, key_word in df.iterrows():
+            key_word = key_word.values[0]
+            box = gui.HBox()
+            label = gui.Label(key_word, width= 150)
+            label.style['text-align'] = 'left'
+            label.style['margin'] = '3px'
+            checkbox = gui.CheckBox()
+            checkbox.style['margin'] = '3px'
+            box.append(checkbox)
+            box.append(label)
+            widgets_holder_dict[tab][0][key_word] = checkbox
+            item = gui.TableItem()
+            item.append(box)
+            row = gui.TableRow()
+            row.append(item)
+            widgets_holder_dict[tab][1].append(row)
+
+
+    def show_new_key_word_dialog(self, *args):
+        self.dialog =gui.GenericDialog(width='470', height='150')
+        self.dialog.empty()
+        box = gui.VBox()
+        box.style['padding'] = '15px'
+        box.append(gui.Label('Please enter the new key word'))
+        self.new_key_word_widget = gui.TextInput(hint='Key word')
+        self.new_key_word_widget.style['margin'] = '15px'
+        self.new_key_word_widget.style['padding-top'] = '3px'
+        self.new_key_word_widget.style['padding-bottom'] = '3px'
+        self.new_key_word_widget.style['padding-right'] = '7px'
+        self.new_key_word_widget.style['padding-left'] = '7px'
+        box.append(self.new_key_word_widget)
+        buttons_box = gui.HBox()
+        cancel_button = gui.Button('Cancel', width=60)
+        cancel_button.style['margin-right'] = '20px'
+        cancel_button.set_on_click_listener(self.ok_or_cancel_listener)
+        buttons_box.append(cancel_button)
+        ok_button = gui.Button('OK', width=60)
+        ok_button.set_on_click_listener(self.add_key_word)
+        buttons_box.append(ok_button)
+        box.append(buttons_box)
+        self.dialog.append(box)
+        self.dialog.show(self)
+
+
+    def add_key_word(self, *args):
+        with open('key_words.csv', 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow([self.new_key_word_widget.get_value()])
+        self.key_words_table.empty()
+        self.build_key_words_table('edit')
+        self.filter_key_words_table.empty()
+        self.build_key_words_table('filter')
+        self.dialog.hide()
+
+
+    def show_new_field_dialog(self, *args):
+        self.dialog = gui.GenericDialog()
+        self.dialog.empty()
         new_field_tab = gui.VBox()
         new_field_tab.style['padding-top'] = '20px'
         new_field_tab.style['padding-bottom'] = '40px'
@@ -829,8 +1317,9 @@ class LabApp(App):
         to_which_table = gui.DropDown(width=370)
         to_which_table.style['padding'] = '2px'
         to_which_table.append(gui.DropDownItem('Select'))
-        to_which_table.append(gui.DropDownItem('a general "property" of a subject (e.g. reading span)'))
-        to_which_table.append(gui.DropDownItem('a value in a specific experiment (e.g. experimental list)'))
+        to_which_table.append(gui.DropDownItem('a general "property" of a subject (e.g. dominant hand)'))
+        to_which_table.append(gui.DropDownItem('a general "property" of an experiment (e.g. duration)'))
+        to_which_table.append(gui.DropDownItem('a value for the participant in the specific experiment (e.g. experimental list)'))
         self.new_field_widgets.append(to_which_table)
         to_which_table_box.append(gui.Label('A value would be:',width=130))
         to_which_table_box.append(to_which_table)
@@ -851,24 +1340,37 @@ class LabApp(App):
         field_type_box.append(field_type)
         new_field_tab.append(field_type_box)
 
+        buttons_box = gui.HBox()
+        buttons_box.style['margin-top'] = '5px'
         add_field_button = gui.Button('Add field')
-        add_field_button.style['margin-top'] = '20px'
+        add_field_button.style['margin-left'] = '20px'
         add_field_button.style['padding-right'] = '10px'
         add_field_button.style['padding-left'] = '10px'
-        add_field_button.set_on_click_listener(self.add_field_listener)
-        new_field_tab.append(add_field_button)
-        return new_field_tab
+        add_field_button.set_on_click_listener(self.show_options_set_dialog)
+        cancel_button = gui.Button('Cancel')
+        cancel_button.style['padding-right'] = '10px'
+        cancel_button.style['padding-left'] = '10px'
+        cancel_button.set_on_click_listener(self.ok_or_cancel_listener)
+        buttons_box.append(cancel_button)
+        buttons_box.append(add_field_button)
+        new_field_tab.append(buttons_box)
+        self.dialog.append(new_field_tab)
+        self.dialog.show(self)
 
-    def add_field_listener(self,*args):
+    def show_options_set_dialog(self,*args):
         """
         checks if an options set is needed (for dropdown fields).
         """
+        self.dialog.hide()
         if self.new_field_widgets[0].get_value() == '' or self.new_field_widgets[1].get_value() == None or self.new_field_widgets[2].get_value() == None:
             self.show_dialog('Please fill out all the details.')
-        elif pd.Series(self.new_field_widgets[0].get_value()).str.lower().str.replace(' ','_').values[0] in tables.table_experiment.columns.values:
+        elif pd.Series(self.new_field_widgets[0].get_value()).str.lower().str.replace(' ','_').values[0] in tables.table_sessions.columns.values:
+            self.show_dialog("A field with this name alreade exists. Consider using the existing field (preferable!), or change the new field's name.")
+        elif pd.Series(self.new_field_widgets[0].get_value()).str.lower().str.replace(' ','_').values[0] in tables.table_experiments.columns.values:
             self.show_dialog("A field with this name alreade exists. Consider using the existing field (preferable!), or change the new field's name.")
         else:
             if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)':
+                self.dialog = gui.GenericDialog(width='470', height='150')
                 self.dialog.empty()
                 box = gui.VBox()
                 box.style['padding'] = '15px'
@@ -907,10 +1409,12 @@ class LabApp(App):
 
             row[0] = pd.Series(row[0]).str.lower().str.replace(' ','_').values[0]
 
-            if row[1] == 'a value in a specific experiment (e.g. experimental list)':
+            if row[1] == 'a general "property" of a subject (e.g. dominant hand)':
+                row[1] = 'Subject'
+            elif row[1] == 'a general "property" of an experiment (e.g. duration)':
                 row[1] = 'Experiment'
             else:
-                row[1] = 'Subject'
+                row[1] = 'Session'
 
             if row[2] == 'Numerical, with range filtering':
                 row[2] = 'integer'
@@ -936,6 +1440,7 @@ class LabApp(App):
     General functions
     """
     def show_dialog(self, message: str):
+        self.dialog = gui.GenericDialog(width='470', height='150')
         self.dialog.empty()
         text = gui.Label(message)
         text.style['text-align'] = 'center'
@@ -956,8 +1461,10 @@ class LabApp(App):
     def new_fields_to_dicts(self,*args):
         dict_to_dicts = {'Subject':{'integer':self.range_subject, 'boolean':self.checkbox_subject,
                            'date':self.date_subject,'text':[self.dropdown_subject, self.textinput_subject]},
-                'Experiment':{'integer':self.range_experiment, 'boolean':self.checkbox_experiment,
-                              'date':self.date_experiment,'text':[self.dropdown_experiment, self.textinput_experiment]}}
+                         'Experiment':{'integer':self.range_experiment, 'boolean':self.checkbox_experiment,
+                                       'date':self.date_experiment,'text':[self.dropdown_experiment, self.textinput_experiment]},
+                         'Session':{'integer':self.range_session, 'boolean':self.checkbox_session,
+                              'date':self.date_session,'text':[self.dropdown_session, self.textinput_session]}}
         df = pd.read_csv('added_fields.csv')
         for idx, row in df.iterrows():
             field_name = row['field_name']
@@ -971,22 +1478,24 @@ class LabApp(App):
                     options_set = options_set.split(',')
                     options_set = [field_name_for_display] + options_set
                     dict_to_dicts[table_name][field_type][0][field_name] = options_set
-                    switch_dict[field_name] = 'other'
+                    if table_name != 'Session':
+                        switch_dict[field_name] = 'other'
                 else:
                     dict_to_dicts[table_name][field_type][1][field_name] = field_name_for_display
-                    switch_dict[field_name] = 'textinput'
-                    if table_name == 'Subject':
-                        self.textinput_search[field_name] = field_name_for_display
+                    if table_name != 'Session':
+                        switch_dict[field_name] = 'textinput'
             else:
                 dict_to_dicts[table_name][field_type][field_name] = field_name_for_display
-                if (field_type == 'integer') or (field_type == 'date'):
-                    switch_dict[field_name] = 'range'
-                else:
-                    switch_dict[field_name] = 'other'
+                if table_name != 'Session':
+                    if (field_type == 'integer') or (field_type == 'date'):
+                        switch_dict[field_name] = 'range'
+                    else:
+                        switch_dict[field_name] = 'other'
 
-            if table_name == 'Experiment':
-                self.order_experiment.append(field_name)
-
+            if table_name == 'Session':
+                self.order_session.insert(-1, field_name)
+            elif table_name == 'Experiment':
+                self.order_experiment.insert(-1, field_name)
             else:
                 self.order_filters.insert(-1, field_name)
                 self.order_subject.insert(-1, field_name)
