@@ -8,7 +8,8 @@ switch_dict = {'gender': 'other',
                'experiment_name': 'textinput',
                'experimenter_name': 'textinput',
                'experimenter_mail': 'textinput',
-               'duration': 'range'}
+               'duration': 'range',
+               'lab': 'other'}
 
 
 class FiltSwitch:

@@ -13,25 +13,24 @@ class LabApp(App):
         self.exp_names = unique_experiments()
         self.range_subject = {'hebrew_age':'Hebrew exposure age','reading_span':'Reading span'}
         self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
-        self.textinput_subject = {'other_languages':'Other languages'}
-        self.textinput_subject_no_filter = {'subject_ID': 'ID',
-                                 'first_name': 'First name',
-                                 'last_name': 'Last name',
-                                 'mail': 'e-mail',
-                                 'subject_notes': 'Comments'}
         self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
         self.date_subject = {'date_of_birth': 'Date of birth'}
-        self.range_session = dict()
+        self.textinput_subject = {'other_languages':'Other languages'}
+        self.textinput_subject_no_filter = {'subject_ID': 'ID',
+                                            'first_name': 'First name',
+                                            'last_name': 'Last name',
+                                            'mail': 'e-mail',
+                                            'subject_notes': 'Comments'}
+        self.range_session = {}
         self.dropdown_session = {'experiment': ['Experiments'] + self.exp_names}
-        self.textinput_session = {'participant_number': 'Subject number',
-                                     'exp_list': 'List',
-                                     'experiment_notes': 'Comments'}
-        self.checkbox_session = {'participated': 'Participated'}
+        self.textinput_session = {'participant_number': 'Subject number','exp_list': 'List', 'experiment_notes': 'Comments',
+                                  'scheduled_time':'Scheduled time'}
+        self.checkbox_session = {'participated': 'Participated', 'credit': 'Credit'}
         self.date_session = {'date': 'Date'}
         self.range_experiment = {'duration': 'Duration'}
-        self.dropdown_experiment = {}
+        self.dropdown_experiment = {'lab':['Lab', 'SPL (Aya)', 'CaLL (Einat)']}
         self.textinput_experiment = {'experiment_name': 'Experiment name','experimenter_name': 'Experimenter',
-                                     'experimenter_mail': 'E-mail address','description': 'Description'}
+                                     'experimenter_mail': 'E-mail address', 'description': 'Description'}
         self.checkbox_experiment = {}
         self.date_experiment = {}
 
@@ -40,7 +39,7 @@ class LabApp(App):
                               'hebrew_age', 'other_languages', 'reading_span','send_mails',
                               'subject_notes']
         self.order_session = ['experiment', 'participated', 'participant_number', 'date', 'exp_list', 'experiment_notes']
-        self.order_experiment = ['experiment_name','experimenter_name','experimenter_mail','duration','description']
+        self.order_experiment = ['experiment_name','experimenter_name','experimenter_mail','lab','duration','description']
 
         self.row_titles_search = {'first_name': 'First name', 'last_name': 'Last name', 'subject_ID': 'ID',
                                   'date_of_birth': 'Date of birth', 'dominant_hand': 'Dominant hand', 'mail': 'e-mail',
@@ -48,7 +47,8 @@ class LabApp(App):
                                   'reading_span': 'Reading span', 'gender': 'Gender',
                                   'hebrew_age': 'Hebrew exposure age', 'other_languages': 'Other languages',
                                   'participant_number': 'Subject number', 'experiment': 'Experiment', 'date': 'Date',
-                                  'participated': 'Participated', 'experiment_notes': 'Comments', 'exp_list': 'List'}
+                                  'participated': 'Participated', 'experiment_notes': 'Comments', 'exp_list': 'List',
+                                  'credit': 'Credit', 'scheduled_time':'Scheduled time'}
 
         # lists containing the filter's widgets, for the function filter() to get their values:
         self.filter_sub_widgets = {}
@@ -854,6 +854,7 @@ class LabApp(App):
         experiments_tab.append(experiment_filters)
 
         self.filtered_experiments_table = gui.TableWidget(0,0)
+        self.filtered_experiments_table.style['margin-bottom'] = '50px'
         experiments_tab.append(self.filtered_experiments_table)
         return experiments_tab
 
@@ -895,7 +896,8 @@ class LabApp(App):
         filter_experiment.style['padding-left'] = '10px'
         filter_experiment.style['padding-right'] = '10px'
 
-        buttons_box = gui.HBox()
+        buttons_box = gui.HBox(height=50)
+        buttons_box.style['padding-bottom'] = '10px'
         buttons_box.append(clear_filters_experiment)
         buttons_box.append(filter_experiment)
 
@@ -1046,7 +1048,10 @@ class LabApp(App):
                     self.set_checkboxes_values(key, val)
                 else:
                     if val != None:
-                        self.edit_experiment_widgets[key].set_value(val)
+                        if key in ['duration','reading_span']:
+                            self.edit_experiment_widgets[key].set_value(int(val))
+                        else:
+                            self.edit_experiment_widgets[key].set_value(val)
 
 
     def set_checkboxes_values(self,key, selected):
@@ -1116,13 +1121,17 @@ class LabApp(App):
         # create dropdown list fields:
         for filter, values in self.dropdown_experiment.items():
             box = gui.HBox(width = 350, height = 40)
-            fil = gui.DropDown(height=20)
-            for idx, val in enumerate(values):
-                fil.add_child(idx,gui.DropDownItem(val))
             box.style['padding-left'] = '10px'
             box.style['padding-right'] = '10px'
-            box.append(fil)
-            self.edit_experiment_widgets[filter] = fil
+            fil_label = gui.Label(values[0], width= 170)
+            fil_label.style['text-align'] = 'left'
+            fil_input = gui.DropDown(height=20)
+            fil_input.add_child(0,gui.DropDownItem(''))
+            for idx, val in enumerate(values[1:]):
+                fil_input.add_child(idx+1,gui.DropDownItem(val))
+            box.append(fil_label)
+            box.append(fil_input)
+            self.edit_experiment_widgets[filter] = fil_input
             self.edit_experiment_boxes_for_display[filter] = box
 
         # create checkbox fields:
@@ -1298,6 +1307,7 @@ class LabApp(App):
 
 
     def show_new_field_dialog(self, *args):
+        self.new_field_widgets = []
         self.dialog = gui.GenericDialog()
         self.dialog.empty()
         new_field_tab = gui.VBox()
@@ -1365,9 +1375,9 @@ class LabApp(App):
         if self.new_field_widgets[0].get_value() == '' or self.new_field_widgets[1].get_value() == None or self.new_field_widgets[2].get_value() == None:
             self.show_dialog('Please fill out all the details.')
         elif pd.Series(self.new_field_widgets[0].get_value()).str.lower().str.replace(' ','_').values[0] in tables.table_sessions.columns.values:
-            self.show_dialog("A field with this name alreade exists. Consider using the existing field (preferable!), or change the new field's name.")
+            self.show_dialog("A field with this name already exists. Consider using the existing field (preferable!), or change the new field's name.")
         elif pd.Series(self.new_field_widgets[0].get_value()).str.lower().str.replace(' ','_').values[0] in tables.table_experiments.columns.values:
-            self.show_dialog("A field with this name alreade exists. Consider using the existing field (preferable!), or change the new field's name.")
+            self.show_dialog("A field with this name already exists. Consider using the existing field (preferable!), or change the new field's name.")
         else:
             if self.new_field_widgets[2].get_value() == 'Text/number, with a fixed set of options (scroll list)':
                 self.dialog = gui.GenericDialog(width='470', height='150')
@@ -1434,6 +1444,8 @@ class LabApp(App):
             self.new_fields_to_dicts()
             self.clear_filters()
             self.clear_window3()
+            self.clear_experiments_filters()
+            self.clear_edit_experiment()
             self.show_dialog('The new field was added to the DB.')
 
     """
@@ -1493,12 +1505,15 @@ class LabApp(App):
                         switch_dict[field_name] = 'other'
 
             if table_name == 'Session':
-                self.order_session.insert(-1, field_name)
+                if field_name not in self.order_session:
+                    self.order_session.insert(-1, field_name)
             elif table_name == 'Experiment':
-                self.order_experiment.insert(-1, field_name)
+                if field_name not in self.order_experiment:
+                    self.order_experiment.insert(-1, field_name)
             else:
-                self.order_filters.insert(-1, field_name)
-                self.order_subject.insert(-1, field_name)
+                if field_name not in self.order_subject:
+                    self.order_filters.insert(-1, field_name)
+                    self.order_subject.insert(-1, field_name)
             self.row_titles_search[field_name] = field_name_for_display
 
 

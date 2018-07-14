@@ -9,10 +9,10 @@ db = SqliteDatabase('./subjects.db')
 
 subject_fields = ['first_name', 'last_name','subject_ID','mail','date_of_birth','gender','hebrew_age','other_languages',
                   'dominant_hand','reading_span','subject_notes','send_mails']
-experiment_fields = ['experiment_name','experimenter_name','experimenter_mail','duration','fields','key_words','description']
+experiment_fields = ['experiment_name','experimenter_name','experimenter_mail','lab', 'duration','fields','key_words','description']
 session_default_fields_before = ['experiment_name','participant_number','exp_list','date']
 session_default_fields_after = ['participated','session_notes']
-session_optional_fields = ['score1','score2','score3','score4']  #@@@@@@@
+session_optional_fields = ['scheduled_time', 'credit']
 
 
 class Subject(Model):
@@ -40,8 +40,7 @@ class Experiment(Model):
     description = CharField(null=True)
     fields = CharField(null=True)
     key_words = CharField(null=True)
-    #methodology = CharField(null=True)
-    #population = CharField(null=True)
+    lab = CharField(null=True)
 
     class Meta:
         database = db # This model uses the "subjects.db" database.
@@ -54,12 +53,8 @@ class Session(Model):
     participated = BooleanField(null=True)
     session_notes = CharField(null=True)
     exp_list = CharField(null=True)
-    # @@@@@@
-    score1 = CharField(null=True)
-    score2 = CharField(null=True)
-    score3 = CharField(null=True)
-    score4 = CharField(null=True)
-    #
+    scheduled_time = CharField(null=True)
+    credit = BooleanField(null=True)
 
     class Meta:
         database = db # this model uses the "subjects.db" database
@@ -137,9 +132,9 @@ class Tables:
 
 # use when creating the db for the first time:
 """
-sub1 = Subject.create(subject_ID = 1, first_name = 'A', last_name = 'B')
-exp1 = Experiment.create(experiment_name = 'exp1', experimenter_name = 'X', experimenter_mail = 'X@mail.com', fields = 'score1, score2, score4')
-ses1 = Session.create(subject = sub1, experiment = exp1, participant_number = 1)
+sub1 = Subject.create(subject_ID = 1)
+exp1 = Experiment.create(experiment_name = 'exp1')
+ses1 = Session.create(subject = sub1, experiment = exp1)
 """
 
 tables = Tables()
