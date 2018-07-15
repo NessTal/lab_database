@@ -8,6 +8,7 @@ import multiprocessing
 import csv
 import numpy as np
 
+
 class LabApp(App):
     def __init__(self, *args):
         self.exp_names = unique_experiments()
@@ -28,7 +29,7 @@ class LabApp(App):
         self.checkbox_session = {'participated': 'Participated', 'credit': 'Credit'}
         self.date_session = {'date': 'Date'}
         self.range_experiment = {'duration': 'Duration'}
-        self.dropdown_experiment = {'lab':['Lab', 'SPL (Aya)', 'CaLL (Einat)']}
+        self.dropdown_experiment = {'lab':['Lab', 'SPL (Aya)', 'CaLL (Einat)'], 'location':['Location', 'ווב חדר 202', 'קרטר']}
         self.textinput_experiment = {'experiment_name': 'Experiment name','experimenter_name': 'Experimenter',
                                      'experimenter_mail': 'E-mail address', 'description': 'Description'}
         self.checkbox_experiment = {}
@@ -39,7 +40,7 @@ class LabApp(App):
                               'hebrew_age', 'other_languages', 'reading_span','send_mails',
                               'subject_notes']
         self.order_session = ['experiment', 'participated', 'participant_number', 'date', 'exp_list', 'experiment_notes']
-        self.order_experiment = ['experiment_name','experimenter_name','experimenter_mail','lab','duration','description']
+        self.order_experiment = ['experiment_name','experimenter_name','experimenter_mail','lab','duration','location','description']
 
         self.row_titles_search = {'first_name': 'First name', 'last_name': 'Last name', 'subject_ID': 'ID',
                                   'date_of_birth': 'Date of birth', 'dominant_hand': 'Dominant hand', 'mail': 'e-mail',
@@ -572,10 +573,9 @@ class LabApp(App):
         experiment_container.append(experiment_table)
         experiment_container.append(self.optional_fields_session_table)
 
-
-
         self.exp_info_dict['experiment'].set_on_change_listener(self.exp_dropdown_change)
         return experiment_container
+
 
     def participant_info_buttons(self):
         """contains participant info, experiment info and the relevant buttons"""
@@ -740,18 +740,18 @@ class LabApp(App):
                     row = self.add_row(field, self.exp_info_dict)
                     self.optional_fields_session_table.add_child(str(id(row)), row)
 
-            subj_id = self.info_dict['subject_ID'].get_value()
-            if subj_id == '':
-                self.show_dialog("Please search for a participant first.")
-            elif self.validate_int(subj_id, 'ID'):
-                try:
-                    print(f'to get_if_exist: {subj_id}, {exp_name}')
-                    subj_data = get_if_exists(int(subj_id), exp_name)
-                    print(f'from get_if_exists: {subj_data}')
-                    self.add_subject_data(subj_data, self.exp_info_dict)
-                except KeyError:
-                    self.clear_experiment()
-                    self.exp_info_dict['experiment'].set_value(exp_name)
+            #subj_id = self.info_dict['subject_ID'].get_value()
+            #if subj_id == '':
+            #    self.show_dialog("Please search for a participant first.")
+            #elif self.validate_int(subj_id, 'ID'):
+            #    try:
+            #        print(f'to get_if_exist: {subj_id}, {exp_name}')
+            #        subj_data = get_if_exists(int(subj_id), exp_name)
+            #        print(f'from get_if_exists: {subj_data}')
+            #        self.add_subject_data(subj_data, self.exp_info_dict)
+            #    except KeyError:
+            #        self.clear_experiment()
+            #        self.exp_info_dict['experiment'].set_value(exp_name)
                 # todo: check if there is data for this experiment+user and clear exp fields if not
 
 
@@ -962,6 +962,7 @@ class LabApp(App):
     def edit_experiments_left(self):
         edit_experiments_left = gui.VBox()
         edit_experiments_left.style['margin-bottom'] = '50px'
+        edit_experiments_left.style['margin-left'] = '220px'
 
         search_experiment_box = gui.HBox(width=450, height=40)
         search_experiment_box.style['margin-top'] = '20px'
@@ -1195,6 +1196,7 @@ class LabApp(App):
         else:
             key_words = gui.VBox(height=400)
         key_words.style['margin-bottom'] = '40px'
+        key_words.style['margin-right'] = '220px'
         lable = gui.Label('Select key words:')
         lable.style['margin-top'] = '25px'
         lable.style['margin-bottom'] = '15px'
@@ -1492,13 +1494,10 @@ def start_scheduler():
     scheduler.start()
 
 
-# @@@@@
-start_gui()
+#start_gui()
 
-"""
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
-"""

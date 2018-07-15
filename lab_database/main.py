@@ -18,15 +18,27 @@ yag = yagmail.SMTP(username, password)
 
 # email reminders
 def mail_reminders():
-    to = experiment_tomorrow_mails()
-    subject_reminder = "תזכורת לניסוי"
-    body_reminder = """היי,
-    זאת תזכורת לכך שקבענו ניסוי למחר, בבניין ווב חדר 202.
+    df = experiment_tomorrow_mails()
+
+    to = df['mail'].to_list()
+    time = df['scheduled_time'].to_list()
+    location = df['location'].to_list()
+    experimenter = df['experimenter_name'].to_list()
+
+    title = "תזכורת להשתתפות בניסוי (של {experimenter})"
+    body = """היי,
+    זאת תזכורת לניסוי שקבענו למחר. ניפגש בשעה {time} בבניין {place}.
     נתראה!
+    {experimentr}
     """
-    body_reminder = '<div align="right">'+body_reminder+'</div>'
-    print(to)
-    yag.send(bcc=to, subject=subject_reminder, contents=body_reminder)
+
+    idx = 0
+    for mail in to:
+        title.format(experimenter=experimenter[idx])
+        body = '<div align="right">'+body.format(experimenter=experimenter[idx], time=time[idx], location=location[idx])+'</div>'
+        yag.send(bcc=mail, subject=title, contents=body)
+        idx += 1
+
 
 
 # new experiment announcement

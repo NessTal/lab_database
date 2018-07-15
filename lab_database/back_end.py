@@ -7,9 +7,9 @@ from filt_switch import FiltSwitch
 db = SqliteDatabase('./subjects.db')
 
 
-subject_fields = ['first_name', 'last_name','subject_ID','mail','date_of_birth','gender','hebrew_age','other_languages',
+subject_fields = ['first_name','last_name','subject_ID','mail','date_of_birth','gender','hebrew_age','other_languages',
                   'dominant_hand','reading_span','subject_notes','send_mails']
-experiment_fields = ['experiment_name','experimenter_name','experimenter_mail','lab', 'duration','fields','key_words','description']
+experiment_fields = ['experiment_name','experimenter_name','experimenter_mail','lab', 'duration','location','fields','key_words','description']
 session_default_fields_before = ['experiment_name','participant_number','exp_list','date']
 session_default_fields_after = ['participated','session_notes']
 session_optional_fields = ['scheduled_time', 'credit']
@@ -41,6 +41,7 @@ class Experiment(Model):
     fields = CharField(null=True)
     key_words = CharField(null=True)
     lab = CharField(null=True)
+    location = CharField(null=True)
 
     class Meta:
         database = db # This model uses the "subjects.db" database.
@@ -293,7 +294,7 @@ def experiment_tomorrow_mails():
     df_ses = df_ses.loc[df_ses['date'] == tomorrow]
     emails = df_ses['mail'].tolist()
     print(emails)
-    return emails
+    return df_ses
 
 
 def export_all_to_csv(*args):
