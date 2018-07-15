@@ -168,7 +168,7 @@ def get_if_exists(identifier, experiment = None):
     elif len(sub) == 1:
         output = sub
         if experiment != None:
-            ses = tables.table_sessions.loc[(tables.table_sessions['subject_ID'] == sub['subject_ID']) &
+            ses = tables.table_sessions.loc[(tables.table_sessions['subject_ID'] == sub['subject_ID'].values[0]) &
                                             (tables.table_sessions['experiment_name'] == experiment)]
             if len(ses) == 1:
                 exp_fields = tables.table_experiments.loc[tables.table_experiments['experiment_name'] == experiment]

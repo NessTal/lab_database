@@ -1,5 +1,3 @@
-experiment_name,experimenter_name,experimenter_mail,duration,fields,key_words,description
-exp1,X,X@mail.com,,"score1, score2, score4",,
-exp2,E,,60.0,score2,"Adults, SPR, Filler-gap dependencies",
-exp3,E,E@mail.com,30.0,,,
-exp4,,,,"score2, score3","Adults, CMLP",
+experiment_name,experimenter_name,experimenter_mail,lab,duration,fields,key_words,description
+exp1,A,a@mail.com,SPL (Aya),30,"scheduled_time, credit","Adults, SPR, Filler-gap dependencies",
+exp2,B,B@mail.com,CaLL (Einat),60,scheduled_time,"Children, Quantifiers",

@@ -84,7 +84,7 @@ class LabApp(App):
 
     def main(self):
         """
-        calls for the three big containers and creates tabs
+        calls for the four big containers and creates tabs
         """
         self.new_fields_to_dicts()
         container = gui.TabBox()
@@ -565,11 +565,16 @@ class LabApp(App):
         # Create labels
         experiment_label = gui.Label('Experiment')
         experiment_label.style['margin-top'] = '5px'
+
+        self.optional_fields_session_table = gui.Table()
         # Add widgets to the container:
         experiment_container.append(experiment_label)
         experiment_container.append(experiment_table)
+        experiment_container.append(self.optional_fields_session_table)
 
-        self.exp_info_dict['experiment'].set_on_change_listener(self.new_exp_click)
+
+
+        self.exp_info_dict['experiment'].set_on_change_listener(self.exp_dropdown_change)
         return experiment_container
 
     def participant_info_buttons(self):
@@ -725,18 +730,23 @@ class LabApp(App):
                     return False
         return True
 
-    def new_exp_click(self, *args):
+    def exp_dropdown_change(self, *args):
         exp_name = self.exp_info_dict['experiment'].get_value()
-        if exp_name == 'Add New':
-            self.enter_new_exp()
-        elif exp_name not in [None, 'Experiments']:
+        self.optional_fields_session_table.empty()
+        if exp_name not in [None, 'Experiments']:
+            optional_fields = filt_experiments({'experiment_name': exp_name})['fields'].values[0].split(', ')
+            if len(optional_fields) > 0:
+                for field in optional_fields:
+                    row = self.add_row(field, self.exp_info_dict)
+                    self.optional_fields_session_table.add_child(str(id(row)), row)
+
             subj_id = self.info_dict['subject_ID'].get_value()
             if subj_id == '':
                 self.show_dialog("Please search for a participant first.")
             elif self.validate_int(subj_id, 'ID'):
                 try:
                     print(f'to get_if_exist: {subj_id}, {exp_name}')
-                    subj_data = get_if_exists(subj_id, exp_name)
+                    subj_data = get_if_exists(int(subj_id), exp_name)
                     print(f'from get_if_exists: {subj_data}')
                     self.add_subject_data(subj_data, self.exp_info_dict)
                 except KeyError:
@@ -744,51 +754,6 @@ class LabApp(App):
                     self.exp_info_dict['experiment'].set_value(exp_name)
                 # todo: check if there is data for this experiment+user and clear exp fields if not
 
-    def enter_new_exp(self):
-        self.dialog.empty()
-        text = gui.Label('Enter the name of the new experiment: ')
-        text.style['margin'] = '3%'
-        dialog_box = gui.VBox()
-        name_input = gui.Input()
-        self.search_widgets['new_experiment_name'] = name_input
-        dialog_box.append(text)
-        dialog_box.append(name_input)
-        ok = gui.Button('OK', width=70)
-        cancel = gui.Button('Cancel', width=70)
-        ok.style['margin-right'] = '2%'
-        cancel.style['margin-left'] = '2%'
-        cancel.set_on_click_listener(self.new_exp_cancel_listener)
-        ok.set_on_click_listener(self.new_exp_ok_listener)
-        buttons_box = gui.HBox()
-        buttons_box.append(ok)
-        buttons_box.append(cancel)
-        buttons_box.style['margin'] = '3%'
-        dialog_box.append(buttons_box)
-        self.dialog.append(dialog_box)
-        self.dialog.show(self)
-
-    def new_exp_cancel_listener(self, *args):
-        """Closes the dialog if the user clicks on 'Cancel'"""
-        self.exp_info_dict['experiment'].set_value('Experiments')
-        self.dialog.hide()
-
-    def new_exp_ok_listener(self, *args):
-        """Enters the name of a new experiment"""
-        new_experiment_name = self.search_widgets['new_experiment_name'].get_value()
-        # if the user did not enter any name, act as 'Cancel'
-        if new_experiment_name == '':
-            self.exp_info_dict['experiment'].set_value('Experiments')
-            self.dialog.hide()
-            # else, if the experiment exists, alert the user and set the value accordingly
-        elif new_experiment_name in self.exp_names:
-            self.dialog.hide()
-            self.show_dialog('The experiment already exists')
-            self.exp_info_dict['experiment'].set_value(new_experiment_name)
-            # else add the experiment to the drop down widget and set the value accordingly [alert the user?]
-        else:
-            self.exp_info_dict['experiment'].add_child(-1, gui.DropDownItem(new_experiment_name))
-            self.exp_info_dict['experiment'].set_value(new_experiment_name)
-            self.dialog.hide()
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
