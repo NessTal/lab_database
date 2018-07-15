@@ -1137,7 +1137,9 @@ class LabApp(App):
         dict['fields'] = self.checkboxes_values_to_string('fields')
         dict['key_words'] = self.checkboxes_values_to_string('key_words')
         add_or_update_experiment(dict)
-        self.refresh_exp_lists()
+        if dict['experiment_name'] not in self.exp_names:
+            self.exp_info_dict['experiment'].add_child(-1, gui.DropDownItem(dict['experiment_name']))
+            self.refresh_exp_lists()
         self.show_dialog('The experiment was updated')
 
 

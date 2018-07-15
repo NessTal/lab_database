@@ -1,6 +1,8 @@
 experiment_name,experimenter_name,experimenter_mail,lab,duration,location,fields,key_words,description
 exp1,A,a@mail.com,SPL (Aya),30.0,ווב חדר 202,"scheduled_time, credit","Adults, SPR, Filler-gap dependencies",
 exp2,B,b@mail.com,CaLL (Einat),60.0,קרטר,scheduled_time,"Children, Quantifiers",
-exp3,,,,,,,,
+exp3,C,,,,,credit,,
 exp4,,,,,,,,
 exp5,,,,,,,,
+exp6,,,,,,,,
+exp7,,,,,,,,
