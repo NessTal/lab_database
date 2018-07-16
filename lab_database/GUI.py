@@ -23,8 +23,8 @@ class LabApp(App):
                                             'mail': 'e-mail',
                                             'subject_notes': 'Comments'}
         self.range_session = {}
-        self.dropdown_session = {'experiment': ['Experiments'] + self.exp_names}
-        self.textinput_session = {'participant_number': 'Subject number','exp_list': 'List', 'experiment_notes': 'Comments',
+        self.dropdown_session = {'experiment_name': ['Experiments'] + self.exp_names}
+        self.textinput_session = {'participant_number': 'Subject number','exp_list': 'List', 'session_notes': 'Comments',
                                   'scheduled_time':'Scheduled time'}
         self.checkbox_session = {'participated': 'Participated', 'credit': 'Credit'}
         self.date_session = {'date': 'Date'}
@@ -39,7 +39,7 @@ class LabApp(App):
         self.order_subject = ['subject_ID', 'first_name', 'last_name', 'mail', 'gender', 'date_of_birth', 'dominant_hand',
                               'hebrew_age', 'other_languages', 'reading_span','send_mails',
                               'subject_notes']
-        self.order_session = ['experiment', 'participated', 'participant_number', 'date', 'exp_list', 'experiment_notes']
+        self.order_session = ['experiment_name', 'participated', 'participant_number', 'date', 'exp_list', 'session_notes']
         self.order_experiment = ['experiment_name','experimenter_name','experimenter_mail','lab','duration','location','description']
 
         self.row_titles_search = {'first_name': 'First name', 'last_name': 'Last name', 'subject_ID': 'ID',
@@ -47,8 +47,8 @@ class LabApp(App):
                                   'subject_notes': 'Comments', 'send_mails': 'Agreed to receive emails',
                                   'reading_span': 'Reading span', 'gender': 'Gender',
                                   'hebrew_age': 'Hebrew exposure age', 'other_languages': 'Other languages',
-                                  'participant_number': 'Subject number', 'experiment': 'Experiment', 'date': 'Date',
-                                  'participated': 'Participated', 'experiment_notes': 'Comments', 'exp_list': 'List',
+                                  'participant_number': 'Subject number', 'experiment_name': 'Experiment', 'date': 'Date',
+                                  'participated': 'Participated', 'session_notes': 'Comments', 'exp_list': 'List',
                                   'credit': 'Credit', 'scheduled_time':'Scheduled time'}
 
         # lists containing the filter's widgets, for the function filter() to get their values:
@@ -174,6 +174,8 @@ class LabApp(App):
         fil_from = gui.Date()
         fil_from.set_value(None)
         fil_lable_to = gui.Label('to')
+        fil_lable_to.style['margin-right'] = '2px'
+        fil_lable_to.style['margin-left'] = '2px'
         fil_to = gui.Date()
         fil_to.set_value(None)
         box.append(fil_label)
@@ -573,7 +575,7 @@ class LabApp(App):
         experiment_container.append(experiment_table)
         experiment_container.append(self.optional_fields_session_table)
 
-        self.exp_info_dict['experiment'].set_on_change_listener(self.exp_dropdown_change)
+        self.exp_info_dict['experiment_name'].set_on_change_listener(self.exp_dropdown_change)
         return experiment_container
 
 
@@ -692,7 +694,7 @@ class LabApp(App):
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
         subject_info = dict()  # output dict
-        experiment_name = self.exp_info_dict['experiment'].get_value()
+        experiment_name = self.exp_info_dict['experiment_name'].get_value()
         # validate that there is an ID, and that it only contains numbers
         if self.info_dict['subject_ID'].get_value() == '':
             self.show_dialog('Please enter the ID')
@@ -731,7 +733,8 @@ class LabApp(App):
         return True
 
     def exp_dropdown_change(self, *args):
-        exp_name = self.exp_info_dict['experiment'].get_value()
+        exp_name = self.exp_info_dict['experiment_name'].get_value()
+        self.clear_experiment()
         self.optional_fields_session_table.empty()
         if exp_name not in [None, 'Experiments']:
             optional_fields = filt_experiments({'experiment_name': exp_name})['fields'].values[0].split(', ')
@@ -740,18 +743,19 @@ class LabApp(App):
                     row = self.add_row(field, self.exp_info_dict)
                     self.optional_fields_session_table.add_child(str(id(row)), row)
 
-            #subj_id = self.info_dict['subject_ID'].get_value()
-            #if subj_id == '':
-            #    self.show_dialog("Please search for a participant first.")
+            subj_id = self.info_dict['subject_ID'].get_value()
+            if subj_id == '':
+                self.show_dialog("Please search for a participant first.")
             #elif self.validate_int(subj_id, 'ID'):
             #    try:
-            #        print(f'to get_if_exist: {subj_id}, {exp_name}')
-            #        subj_data = get_if_exists(int(subj_id), exp_name)
-            #        print(f'from get_if_exists: {subj_data}')
-            #        self.add_subject_data(subj_data, self.exp_info_dict)
+            else:
+                print(f'to get_if_exist: {subj_id}, {exp_name}')
+                subj_data = get_if_exists(int(subj_id), exp_name)
+                print(f'from get_if_exists: {subj_data}')
+                self.add_subject_data(subj_data, self.exp_info_dict)
             #    except KeyError:
             #        self.clear_experiment()
-            #        self.exp_info_dict['experiment'].set_value(exp_name)
+            #        self.exp_info_dict['experiment_name'].set_value(exp_name)
                 # todo: check if there is data for this experiment+user and clear exp fields if not
 
 
@@ -1138,7 +1142,7 @@ class LabApp(App):
         dict['key_words'] = self.checkboxes_values_to_string('key_words')
         add_or_update_experiment(dict)
         if dict['experiment_name'] not in self.exp_names:
-            self.exp_info_dict['experiment'].add_child(-1, gui.DropDownItem(dict['experiment_name']))
+            self.exp_info_dict['experiment_name'].add_child(-1, gui.DropDownItem(dict['experiment_name']))
             self.refresh_exp_lists()
         self.show_dialog('The experiment was updated')
 
@@ -1497,6 +1501,7 @@ def start_scheduler():
 
 
 #start_gui()
+
 
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
