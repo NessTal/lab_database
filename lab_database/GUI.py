@@ -171,18 +171,33 @@ class LabApp(App):
         box.style['padding-left'] = '10px'
         box.style['padding-right'] = '10px'
         fil_label = gui.Label(text,width = 300)
-        fil_from = gui.Date()
-        fil_from.set_value(None)
+
+        fil_from = gui.HBox()
+        from_dd = gui.TextInput(hint='dd')
+        from_mm = gui.TextInput(hint='mm')
+        from_yyyy = gui.TextInput(hint='yyyy')
+        fil_from.append(from_dd)
+        fil_from.append(from_mm)
+        fil_from.append(from_yyyy)
+
         fil_lable_to = gui.Label('to')
         fil_lable_to.style['margin-right'] = '2px'
         fil_lable_to.style['margin-left'] = '2px'
-        fil_to = gui.Date()
-        fil_to.set_value(None)
+
+        fil_to = gui.HBox()
+        to_dd = gui.TextInput(hint='dd')
+        to_mm = gui.TextInput(hint='mm')
+        to_yyyy = gui.TextInput(hint='yyyy')
+        fil_to.append(to_dd)
+        fil_to.append(to_mm)
+        fil_to.append(to_yyyy)
+
         box.append(fil_label)
         box.append(fil_from)
         box.append(fil_lable_to)
         box.append(fil_to)
-        widgets_dict[filter] = [fil_from, fil_to]
+
+        widgets_dict[filter] = [[from_dd,from_mm,from_yyyy],[to_dd,to_mm,to_yyyy]]
         widgets_for_display_dict[filter] = box
 
     def create_dropdown_filter(self,filter,values,widgets_dict,widgets_for_display_dict):
@@ -344,11 +359,23 @@ class LabApp(App):
                     else:
                         selected_filters[filter] = [int(from_val), int(to_val)]
 
+            # date filters:
             for filter in self.date_subject.keys():
-                from_val = self.filter_sub_widgets[filter][0].get_value()
-                to_val = self.filter_sub_widgets[filter][1].get_value()
+                widgets_from = self.filter_sub_widgets[filter][0]
+                widgets_to = self.filter_sub_widgets[filter][1]
+                if (widgets_from[0].get_value() != '') and (widgets_from[1].get_value() != '') and (widgets_from[2].get_value() != ''):
+                    from_val = widgets_from[0].get_value()+'-'+widgets_from[1].get_value()+'-'+widgets_from[2].get_value()
+                else:
+                    from_val = 'None'
+                if (widgets_to[0].get_value() != '') and (widgets_to[1].get_value() != '') and (widgets_to[2].get_value() != ''):
+                    to_val = widgets_to[0].get_value()+'-'+widgets_to[1].get_value()+'-'+widgets_to[2].get_value()
+                else:
+                    to_val = 'None'
                 if (from_val != 'None') or (to_val != 'None'):
                     selected_filters[filter] = [from_val,to_val]
+
+
+
 
             # drop down filters:
             for filter, text in self.dropdown_subject.items():
@@ -796,7 +823,8 @@ class LabApp(App):
     def import_from_excel_listener(self,*args):
         file_name = self.import_file_name.get_value()
         file = import_path+file_name+'.csv'
-        import_from_excel(file)
+        date_fields = list(self.date_subject.keys()) + list(self.date_session.keys())
+        import_from_excel(file,date_fields)
         self.refresh_exp_lists()
         self.clear_window3()
         self.show_dialog(f'Imported from: {file}')
@@ -898,9 +926,12 @@ class LabApp(App):
                 else:
                     selected_filters[filter] = [int(from_val), int(to_val)]
 
+        # date filters:
         for filter in self.date_experiment.keys():
-            from_val = self.filter_experiment_widgets[filter][0].get_value()
-            to_val = self.filter_experiment_widgets[filter][1].get_value()
+            widgets_from = self.filter_sub_widgets[filter][0]
+            widgets_to = self.filter_sub_widgets[filter][1]
+            from_val = widgets_from[0].get_value()+'-'+widgets_from[1].get_value()+'-'+widgets_from[2].get_value()
+            to_val = widgets_to[0].get_value()+'-'+widgets_to[1].get_value()+'-'+widgets_to[2].get_value()
             if (from_val != 'None') or (to_val != 'None'):
                 selected_filters[filter] = [from_val,to_val]
 
@@ -1472,8 +1503,10 @@ class LabApp(App):
             else:
                 dict_to_dicts[table_name][field_type][field_name] = field_name_for_display
                 if table_name != 'Session':
-                    if (field_type == 'integer') or (field_type == 'date'):
+                    if field_type == 'integer':
                         switch_dict[field_name] = 'range'
+                    elif field_type == 'date':
+                        switch_dict[field_name] = 'date'
                     else:
                         switch_dict[field_name] = 'other'
 
@@ -1500,11 +1533,12 @@ def start_scheduler():
     scheduler.start()
 
 
-#start_gui()
+start_gui()
 
-
+"""
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
+"""

@@ -303,8 +303,11 @@ def export_all_to_csv(*args):
     tables.table_sessions.to_csv('../exported files/all_sessions_db.csv', index=False)
 
 
-def import_from_excel(file):
+def import_from_excel(file,date_fields):
     df = pd.read_csv(file, encoding='hebrew', parse_dates=False)
+    for d_field in date_fields:
+        df[d_field] = df[d_field+'_dd'].astype(str) + '-' + df[d_field+'_mm'].astype(str) + '-' + df[d_field+'_yyyy'].astype(str)
+        df = df.drop(columns=[d_field+'_dd',d_field+'_mm',d_field+'_yyyy'])
     dict = df.to_dict(orient = 'list')
     #dict['date'] = [datetime.datetime.strptime(date, '%d-%m-%y').date() for date in dict['date']]
     row_num = 0

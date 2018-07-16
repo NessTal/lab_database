@@ -1,5 +1,5 @@
 experiment_name,participant_number,exp_list,date,first_name,last_name,subject_ID,mail,date_of_birth,gender,hebrew_age,other_languages,dominant_hand,reading_span,subject_notes,send_mails,participated,session_notes,scheduled_time,credit
-exp1,1,A,01-03-18,A,a,1,Aa@mail.com,01-01-1991,Female,0.0,,,3.0,,True,True,,,
-exp1,2,B,02-03-18,B,b,2,Bb@mail.com,01-03-1991,Female,0.0,,,4.0,,False,True,,,
-exp1,3,A,03-03-18,C,c,3,Cc@mail.com,01-01-1992,Male,3.0,English,,,,True,True,,,
-exp1,4,B,01-04-18,D,d,4,Dd@mail.com,12-01-1991,Female,0.0,,,5.0,,True,True,,,
+exp1,1,A,1-1-2018,A,a,1,Aa@mail.com,1-1-1991,Female,0.0,,,3.0,,True,True,,,
+exp1,2,B,2-3-2018,B,b,2,Bb@mail.com,1-3-1991,Female,0.0,,,4.0,,False,True,,,
+exp1,3,A,3-1-2018,C,c,3,Cc@mail.com,1-1-1992,Male,3.0,English,,,,True,True,,,
+exp1,4,B,1-4-2018,D,d,4,Dd@mail.com,12-1-1991,Female,0.0,,,5.0,,True,True,,,
