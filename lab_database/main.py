@@ -1,6 +1,8 @@
 import yagmail
 import json
-from back_end import *
+#from back_end import *
+from get_from_calendar import *
+
 
 with open("config.json", "r") as file:
     data = json.load(file)
@@ -18,6 +20,8 @@ yag = yagmail.SMTP(username, password)
 
 # email reminders
 def mail_reminders():
+    calender_to_db()
+
     df = experiment_tomorrow_mails()
 
     to = df['mail'].to_list()

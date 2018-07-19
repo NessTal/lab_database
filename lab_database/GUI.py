@@ -1533,12 +1533,10 @@ def start_scheduler():
     scheduler.start()
 
 
-start_gui()
+# start_gui()
 
-"""
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
-"""

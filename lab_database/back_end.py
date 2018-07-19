@@ -208,7 +208,7 @@ def add_or_update(dict):
             else:
                 ses_dict['subject'] = sub
                 ses_dict['experiment'] = exp
-                Experiment.create(**exp_dict).save()
+                Session.create(**ses_dict).save()
             tables.table_for_emails = get_table_sessions()
             tables.table_sessions = tables.table_for_emails[session_default_fields_before + subject_fields +
                                                             session_default_fields_after + session_optional_fields]
