@@ -290,12 +290,11 @@ def filt_experiments(filt_exp_dict):
 def experiment_tomorrow_mails():
     df_ses = tables.table_for_emails
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    tomorrow = tomorrow.strftime('%d-%m-%y')
+    tomorrow = tomorrow.strftime('%d-%m-%Y')
     df_ses = df_ses.loc[df_ses['date'] == tomorrow]
     emails = df_ses['mail'].tolist()
     print(emails)
     return df_ses
-
 
 def export_all_to_csv(*args):
     tables.table_subjects.to_csv('../exported files/all_subjects_db.csv', index=False)

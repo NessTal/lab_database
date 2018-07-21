@@ -24,26 +24,26 @@ def mail_reminders():
 
     df = experiment_tomorrow_mails()
 
-    to = df['mail'].to_list()
-    time = df['scheduled_time'].to_list()
-    location = df['location'].to_list()
-    experimenter = df['experimenter_name'].to_list()
+    to = df['mail'].tolist()
+    time = df['scheduled_time'].tolist()
+    location = df['location'].tolist()
+    experimenter = df['experimenter_name'].tolist()
 
     title = "תזכורת להשתתפות בניסוי (של {experimenter})"
     body = """היי,
-    זאת תזכורת לניסוי שקבענו למחר. ניפגש בשעה {time} בבניין {place}.
+    זאת תזכורת לניסוי שקבענו למחר. ניפגש בשעה {time} בבניין {location}.
     נתראה!
-    {experimentr}
+    {experimenter}
     """
 
     idx = 0
     for mail in to:
-        title.format(experimenter=experimenter[idx])
-        body = '<div align="right">'+body.format(experimenter=experimenter[idx], time=time[idx], location=location[idx])+'</div>'
-        yag.send(bcc=mail, subject=title, contents=body)
+        current_title = title.format(experimenter=experimenter[idx])
+        current_body = '<div dir="rtl">'+body.format(experimenter=experimenter[idx], time=time[idx], location=location[idx])+'</div>'
+        yag.send(bcc=mail, subject=current_title, contents=current_body)
         idx += 1
 
-
+mail_reminders()
 
 # new experiment announcement
 def exp_mail(emails_list,subject='',contents=''):
