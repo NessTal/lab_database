@@ -645,10 +645,10 @@ class LabApp(App):
         output_dictionary[label] = box  # Store the widget in a dictionary
 
     def date_field(self):
-        date_box = gui.HBox(width=100)
-        day = gui.TextInput(hint='dd')
-        month = gui.TextInput(hint='mm')
-        year = gui.TextInput(hint='yyyy')
+        date_box = gui.HBox(width=150)
+        day = gui.TextInput(hint='dd', width='30%')
+        month = gui.TextInput(hint='mm', width='30%')
+        year = gui.TextInput(hint='yyyy', width='40%')
         date_box.append(day)
         date_box.append(month)
         date_box.append(year)
