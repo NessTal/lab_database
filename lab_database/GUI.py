@@ -757,7 +757,16 @@ class LabApp(App):
         returns a dictionary with non-empty values
         """
         for label in widget_dictionary:
-            value = widget_dictionary[label].get_value()
+            widget = widget_dictionary[label]
+            if type(widget) is gui.HBox:
+                value = ''
+                date = [widget.children['day'].get_value(),
+                        widget.children['month'].get_value(),
+                        widget.children['year'].get_value()]
+                if value not in date:
+                    value = '-'.join(date)
+            else:
+                value = widget_dictionary[label].get_value()
             # if the field's value exists and isn't empty, add it to the dictionary
             if value not in [None, '', 'None', 'nan']:
                 info_dictionary[label] = value
@@ -1545,10 +1554,11 @@ def start_scheduler():
     scheduler.start()
 
 
-# start_gui()
-
+start_gui()
+"""
 if __name__ == '__main__':
     p1 = multiprocessing.Process(name='p1', target=start_gui)
     p2 = multiprocessing.Process(name='p2', target=start_scheduler)
     p1.start()
     p2.start()
+"""
