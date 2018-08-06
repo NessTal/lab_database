@@ -470,7 +470,6 @@ class LabApp(App):
         print(self.mail_widgets[0].get_value())
         print(self.mail_widgets[1].get_value())
 
-
     """
     Edit subjects tab
     """
@@ -630,7 +629,7 @@ class LabApp(App):
     def add_search_widget(self, label, box_type, widget_dictionary, output_dictionary):
         """create a widget for the participants table"""
         types_dict = {'input': gui.TextInput,
-                      'date': gui.Date,
+                      'date': self.date_field,
                       'spinbox': gui.SpinBox,
                       'drop_down': gui.DropDown,
                       'checkbox': gui.CheckBox}
@@ -643,9 +642,17 @@ class LabApp(App):
         elif box_type == 'drop_down':
             for idx, item in enumerate(widget_dictionary[label]):
                 box.add_child(idx + 1, gui.DropDownItem(item))
-        elif box_type == 'date':
-            box.set_value(None)
         output_dictionary[label] = box  # Store the widget in a dictionary
+
+    def date_field(self):
+        date_box = gui.HBox(width=100)
+        day = gui.TextInput(hint='dd')
+        month = gui.TextInput(hint='mm')
+        year = gui.TextInput(hint='yyyy')
+        date_box.append(day)
+        date_box.append(month)
+        date_box.append(year)
+        return date_box
 
     def add_row(self, label, widget_dictionary):
         """create a row containing a label and a widget"""
@@ -683,7 +690,7 @@ class LabApp(App):
             # if the user does not exist, add the field we searched to the table so a new user could be created
             if type(subj_data) != pd.DataFrame:
                 if subj_data == 'Too many!':
-                    self.show_dialog('More then one participant was found. Please search by ID.')
+                    self.show_dialog('More than one participant was found. Please search by ID.')
                 else:
                     self.show_dialog('No subject found, you can add a new subject below')
                     self.clear_window3()
