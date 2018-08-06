@@ -35,15 +35,16 @@ def calender_to_db():
     if not events:
         print('No upcoming events found.')
     for event in events:
-        L = event['summary'].split(' - ') + event['description'].split(' - ')
-        if len(L) == 4:
-            D = {'experiment_name': L[0], 'first_name': L[1].split(' ')[0], 'last_name': L[1].split(' ')[1],
-                 'subject_ID': L[2], 'mail': L[3]}
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            D['date'] = start.split('T')[0]
-            D['date'] = D['date'].split('-')
-            D['date'] = D['date'][2]+'-'+D['date'][1]+'-'+D['date'][0]
-            D['scheduled_time'] = start.split('T')[1].split('+')[0][:5]
-            add_or_update(D)
-            print(D)
+        if 'description' in list(event.keys()):
+            L = event['summary'].split(' - ') + event['description'].split(' - ')
+            if len(L) == 4:
+                D = {'experiment_name': L[0], 'first_name': L[1].split(' ')[0], 'last_name': L[1].split(' ')[1],
+                     'subject_ID': L[2], 'mail': L[3]}
+                start = event['start'].get('dateTime', event['start'].get('date'))
+                D['date'] = start.split('T')[0]
+                D['date'] = D['date'].split('-')
+                D['date'] = D['date'][2]+'-'+D['date'][1]+'-'+D['date'][0]
+                D['scheduled_time'] = start.split('T')[1].split('+')[0][:5]
+                add_or_update(D)
+                print(D)
 

@@ -1,6 +1,6 @@
 import remi.gui as gui
 from remi import start, App
-#from back_end import *
+# from back_end import *
 from main import *
 from filt_switch import *
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -12,11 +12,12 @@ import numpy as np
 class LabApp(App):
     def __init__(self, *args):
         self.exp_names = unique_experiments()
-        self.range_subject = {'hebrew_age':'Hebrew exposure age','reading_span':'Reading span'}
-        self.dropdown_subject = {'gender':['Gender','Male','Female'], 'dominant_hand':['Dominant hand','Right','Left']}
+        self.range_subject = {'hebrew_age': 'Hebrew exposure age', 'reading_span': 'Reading span'}
+        self.dropdown_subject = {'gender': ['Gender', 'Male', 'Female'],
+                                 'dominant_hand': ['Dominant hand', 'Right', 'Left']}
         self.checkbox_subject = {'send_mails': 'Agreed to receive emails'}
         self.date_subject = {'date_of_birth': 'Date of birth'}
-        self.textinput_subject = {'other_languages':'Other languages'}
+        self.textinput_subject = {'other_languages': 'Other languages'}
         self.textinput_subject_no_filter = {'subject_ID': 'ID',
                                             'first_name': 'First name',
                                             'last_name': 'Last name',
@@ -24,20 +25,22 @@ class LabApp(App):
                                             'subject_notes': 'Comments'}
         self.range_session = {}
         self.dropdown_session = {'experiment_name': ['Experiments'] + self.exp_names}
-        self.textinput_session = {'participant_number': 'Subject number','exp_list': 'List', 'session_notes': 'Comments',
-                                  'scheduled_time':'Scheduled time'}
+        self.textinput_session = {'participant_number': 'Subject number',
+                                  'exp_list': 'List', 'session_notes': 'Comments',
+                                  'scheduled_time': 'Scheduled time'}
         self.checkbox_session = {'participated': 'Participated', 'credit': 'Credit'}
         self.date_session = {'date': 'Date'}
         self.range_experiment = {'duration': 'Duration'}
-        self.dropdown_experiment = {'lab':['Lab', 'SPL (Aya)', 'CaLL (Einat)'], 'location':['Location', 'ווב חדר 202', 'קרטר']}
+        self.dropdown_experiment = {'lab': ['Lab', 'SPL (Aya)', 'CaLL (Einat)'], 'location': ['Location', 'ווב חדר 202', 'קרטר']}
         self.textinput_experiment = {'experiment_name': 'Experiment name','experimenter_name': 'Experimenter',
                                      'experimenter_mail': 'E-mail address', 'description': 'Description'}
         self.checkbox_experiment = {}
         self.date_experiment = {}
 
-        self.order_filters = ['hebrew_age', 'other_languages', 'date_of_birth','gender','dominant_hand','reading_span','send_mails']
-        self.order_subject = ['subject_ID', 'first_name', 'last_name', 'mail', 'gender', 'date_of_birth', 'dominant_hand',
-                              'hebrew_age', 'other_languages', 'reading_span','send_mails',
+        self.order_filters = ['hebrew_age', 'other_languages', 'date_of_birth','gender','dominant_hand', 'reading_span',
+                              'send_mails']
+        self.order_subject = ['subject_ID', 'first_name', 'last_name', 'mail', 'gender', 'date_of_birth',
+                              'dominant_hand', 'hebrew_age', 'other_languages', 'reading_span', 'send_mails',
                               'subject_notes']
         self.order_session = ['experiment_name', 'participated', 'participant_number', 'date', 'exp_list', 'session_notes']
         self.order_experiment = ['experiment_name','experimenter_name','experimenter_mail','lab','duration','location','description']
@@ -81,7 +84,6 @@ class LabApp(App):
         self.search_widgets = dict()
 
         super(LabApp, self).__init__(*args)
-
 
     def main(self):
         """
@@ -649,9 +651,9 @@ class LabApp(App):
         day = gui.TextInput(hint='dd', width='30%')
         month = gui.TextInput(hint='mm', width='30%')
         year = gui.TextInput(hint='yyyy', width='40%')
-        date_box.append(day)
-        date_box.append(month)
-        date_box.append(year)
+        date_box.append(day, key='day')
+        date_box.append(month, key='month')
+        date_box.append(year, key='year')
         return date_box
 
     def add_row(self, label, widget_dictionary):
@@ -715,15 +717,18 @@ class LabApp(App):
         for label in widget_dict:
             widget = widget_dict[label]
             value = subj_data[label].values[0]
-            if type(widget) in [gui.TextInput, gui.DropDown]:
-                if value is None:
-                    value = ''
-                value = str(value)
-                # widget.set_value(str(subj_data[label].values[0]))
-            elif type(widget) in [gui.SpinBox, gui.CheckBox]:
-                if label == 'date_of_birth' and value is True:
-                    value = int(value)
-            widget.set_value(value)
+            # if the widget contains a date, split and set each value in its field
+            if type(widget) is gui.HBox:
+                day, month, year = value.split('-')
+                widget.children['day'].set_value(day)
+                widget.children['month'].set_value(month)
+                widget.children['year'].set_value(year)
+            else:
+                if type(widget) in [gui.TextInput, gui.DropDown]:
+                    if value is None:
+                        value = ''
+                    value = str(value)
+                widget.set_value(value)
 
     def update_subject_click(self, widget):
         """updates a subject's info when the Update Info button is clicked"""
