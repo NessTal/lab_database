@@ -606,7 +606,6 @@ class LabApp(App):
         self.exp_info_dict['experiment_name'].set_on_change_listener(self.exp_dropdown_change)
         return experiment_container
 
-
     def participant_info_buttons(self):
         """contains participant info, experiment info and the relevant buttons"""
         info_container = gui.VBox()
@@ -794,7 +793,7 @@ class LabApp(App):
             subj_id = self.info_dict['subject_ID'].get_value()
             if subj_id == '':
                 self.show_dialog("Please search for a participant first.")
-            #elif self.validate_int(subj_id, 'ID'):
+            # elif self.validate_int(subj_id, 'ID'):
             #    try:
             else:
                 print(f'to get_if_exist: {subj_id}, {exp_name}')
@@ -805,7 +804,6 @@ class LabApp(App):
             #        self.clear_experiment()
             #        self.exp_info_dict['experiment_name'].set_value(exp_name)
                 # todo: check if there is data for this experiment+user and clear exp fields if not
-
 
     def validate_int(self, num, field: str, debug=False)->bool:
         """validates that the input can be modified to int"""
@@ -820,17 +818,17 @@ class LabApp(App):
                 raise ValueError  # for testing
 
     def import_from_excel(self):
-        import_box = gui.HBox(width = 300, height = 80)
-        import_file = gui.TextInput(hint='File name', width = 140)
+        import_box = gui.HBox(width=300, height=80)
+        import_file = gui.TextInput(hint='File name', width=140)
         import_file.style['padding'] = '4px'
-        import_button = gui.Button('Import from excel', width = 140)
+        import_button = gui.Button('Import from excel', width=140)
         import_button.set_on_click_listener(self.import_from_excel_listener)
         import_box.append(import_button)
         import_box.append(import_file)
         self.import_file_name = import_file
         return import_box
 
-    def clear_window3(self,*args):
+    def clear_window3(self, *args):
         self.window3_for_clear.empty()
         self.window3_for_clear.append(self.participant_info())
         self.clear_experiment()
@@ -841,11 +839,11 @@ class LabApp(App):
         self.experiment_for_clear.empty()
         self.experiment_for_clear.append(self.experiment_info())
 
-    def import_from_excel_listener(self,*args):
+    def import_from_excel_listener(self, *args):
         file_name = self.import_file_name.get_value()
         file = import_path+file_name+'.csv'
         date_fields = list(self.date_subject.keys()) + list(self.date_session.keys())
-        import_from_excel(file,date_fields)
+        import_from_excel(file, date_fields)
         self.refresh_exp_lists()
         self.clear_window3()
         self.show_dialog(f'Imported from: {file}')
@@ -855,7 +853,6 @@ class LabApp(App):
         self.filter_exp_yes_widgets = []
         self.filter_exp_no_widgets = []
         self.clear_filters()
-
 
     """
     Experiments tab
