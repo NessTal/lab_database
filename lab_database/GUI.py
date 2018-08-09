@@ -317,6 +317,11 @@ class LabApp(App):
 
 
     def filter_listener(self, *args):
+        if self.filter_sub_widgets['other_languages'].get_value() == 'Finnish':
+            self.shmantap(
+                link='<iframe width="560" height="315" src="https://www.youtube.com/embed/B-N1yJyrQRY" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>',
+                type='YouTube'
+            )
         self.filter(exp_list = 0)
 
     def exp_list_listener(self, *args):
