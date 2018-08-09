@@ -74,6 +74,7 @@ class LabApp(App):
         self.filter_key_words_table = gui.ListView()
 
         self.dialog = gui.GenericDialog(width='470', height='150')
+        self.alternative_dialog = gui.GenericDialog()
         self.filter_results = pd.DataFrame()
         self.filter_experiments_results = pd.DataFrame()
 
@@ -686,6 +687,11 @@ class LabApp(App):
         else:
             if field == 'ID':
                 search_value = int(search_value)
+            elif field == 'Full Name' and search_value.lower() == 'shmantapim':
+                self.shmantap(
+                    link='https://media1.tenor.com/images/85e1167de8c72f25a5ac00ba9e2b3016/tenor.gif?itemid=5623329',
+                    type='image'
+                )
             subj_data = get_if_exists(search_value)
             print(f'get_if_exists result: {subj_data}')
             # if the user does not exist, add the field we searched to the table so a new user could be created
@@ -1481,16 +1487,37 @@ class LabApp(App):
         text.style['margin-top'] = '30px'
         text.style['margin-bottom'] = '30px'
         self.dialog.append(text)
-        ok = gui.Button('OK', width= 70)
+        ok = gui.Button('OK', width=70)
         ok.style['margin-left'] = '200px'
         ok.set_on_click_listener(self.ok_or_cancel_listener)
         self.dialog.append(ok)
         self.dialog.show(self)
 
+    def shmantap(self, link: str, type: str):
+        self.alternative_dialog = gui.GenericDialog()
+        self.alternative_dialog.empty()
+        box = gui.VBox()
+        shmantapim = {
+            'YouTube': gui.Label,
+            'image': gui.Image
+        }[type](link)
+        # shmantapim = gui.Label('<iframe width="560" height="315" src="https://www.youtube.com/embed/B-N1yJyrQRY" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>')
+        # shmantapim = gui.Image(
+        #     'https://media1.tenor.com/images/85e1167de8c72f25a5ac00ba9e2b3016/tenor.gif?itemid=5623329')
+        box.append(shmantapim)
+        ok = gui.Button('OK', width=70)
+        ok.set_on_click_listener(self.alternative_ok_listener)
+        box.append(ok)
+        self.alternative_dialog.append(box)
+        self.alternative_dialog.show(self)
+
     def ok_or_cancel_listener(self,*args):
         self.dialog.hide()
         if len(self.new_field_widgets) > 3:
             self.new_field_widgets = self.new_field_widgets[:3]
+
+    def alternative_ok_listener(self, *args):
+        self.alternative_dialog.hide()
 
     def new_fields_to_dicts(self,*args):
         dict_to_dicts = {'Subject':{'integer':self.range_subject, 'boolean':self.checkbox_subject,
