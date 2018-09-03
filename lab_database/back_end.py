@@ -87,6 +87,7 @@ def add_new_fields_to_tables():
 add_new_fields_to_tables()
 
 def unique_experiments():
+    refresh_tables()
     exp_list = list(set([exp.experiment_name for exp in Experiment.select()]))
     exp_list.sort(key=str.lower)
     return exp_list
@@ -155,6 +156,7 @@ def devide_dict(dict):
 
 
 def get_if_exists(identifier, experiment = None):
+    refresh_tables()
     output = False
     if ' ' in str(identifier):
         first, last = identifier.split(" ", 1)
@@ -241,6 +243,7 @@ def add_or_update_experiment(dict):
 
 
 def filt(filt_dict, exp_list = 0):
+    refresh_tables()
     sub = tables.table_subjects
     ses = tables.table_sessions
 
@@ -279,6 +282,7 @@ def filt(filt_dict, exp_list = 0):
     return result
 
 def filt_experiments(filt_exp_dict):
+    refresh_tables()
     result = tables.table_experiments
     if 'key_words' in filt_exp_dict.keys():
         for key_word in filt_exp_dict.pop('key_words'):
@@ -318,10 +322,7 @@ def import_from_excel(file,date_fields):
                 row_dict[key] = val
         add_or_update(row_dict)
         row_num += 1
-    tables.table_subjects = get_table_subjects()
-    tables.table_for_emails = get_table_sessions()
-    tables.table_sessions = tables.table_for_emails[session_default_fields_before + subject_fields +
-                                                    session_default_fields_after + session_optional_fields]
+    refresh_tables()
     export_all_to_csv()
 
 
@@ -346,11 +347,15 @@ def add_new_field(table_name,field_name,field_type):
     else:
         session_optional_fields.append(field_name)
 
+    refresh_tables()
+
+
+def refresh_tables():
     tables.table_subjects = get_table_subjects()
     tables.table_experiments = get_table_experiments()
     tables.table_for_emails = get_table_sessions()
     tables.table_sessions = tables.table_for_emails[session_default_fields_before + subject_fields +
-                                                    session_default_fields_after + session_optional_fields]
+                                                session_default_fields_after + session_optional_fields]
 
 
 db.close()
