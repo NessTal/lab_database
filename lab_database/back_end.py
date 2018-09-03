@@ -292,6 +292,7 @@ def filt_experiments(filt_exp_dict):
     return result
 
 def experiment_tomorrow_mails():
+    refresh_tables()
     df_ses = tables.table_for_emails
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
     tomorrow = tomorrow.strftime('%d-%m-%Y')
